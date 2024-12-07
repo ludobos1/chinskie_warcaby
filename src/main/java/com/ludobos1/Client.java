@@ -73,7 +73,7 @@ public class Client {
         System.out.println("Invalid input -  too much move arguments");
         continue;
       }
-      MoveMessage moveMessage = new MoveMessage(Integer.parseInt(from[0]), Integer.parseInt(from[1]),
+      Message moveMessage = new MoveMessage(Integer.parseInt(from[0]), Integer.parseInt(from[1]),
               Integer.parseInt(to[0]), Integer.parseInt(to[1]));
       sendMessage(moveMessage);
     }
