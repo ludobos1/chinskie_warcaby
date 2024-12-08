@@ -5,6 +5,8 @@ import com.ludobos1.message.TypeEnum;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.List;
+import java.util.ArrayList;
 
 public class ClientHandler implements Runnable {
   private final Socket clientSocket;
@@ -41,20 +43,6 @@ public class ClientHandler implements Runnable {
             disconnect();
         }
     }
-    private void handleMessage(Message message) {
-        switch (message.getType()) {
-            case MOVE:
-                System.out.println("Odebrano ruch od klienta.");
-                broadcastMessage(message); 
-                break;
-            case JOIN:
-                System.out.println("Klient dołączył do gry.");
-                break;
-            default:
-                System.out.println("Nieznany typ wiadomości: " + message.getType());
-        }
-    }
-
      private void handleMessage(Message message) {
         switch (message.getType()) {
             case MOVE:

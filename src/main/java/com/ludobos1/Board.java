@@ -3,6 +3,13 @@ import java.util.List;
 
 public class Board {
     private final List<Piece> pieces = new ArrayList<>();
+    private int fromX, fromY, toX, toY;
+    public Board(int fromX, int fromY, int toX, int toY) {
+        this.fromX = fromX;
+        this.fromY = fromY;
+        this.toX = toX;
+        this.toY = toY;
+    }
 
     /**
      * Dodaje pionek na planszę.
@@ -14,9 +21,8 @@ public class Board {
     /**
      * Przesuwa pionek na nowe współrzędne.
      */
-    public boolean movePiece(String pieceId, int newX, int newY) {
-                    piece.setPosition(newX, newY);
-                    //TODO:sprawdzenie legalnosci
+    public void movePiece(String pieceId, int toX, int toY) {
+
 
     }
 

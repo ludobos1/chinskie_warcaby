@@ -6,6 +6,9 @@ import com.ludobos1.message.MoveMessage;
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.List;
+import java.util.ArrayList;
+
 
 public class Client {
   private static final String SERVER_ADDRESS = "localhost";
