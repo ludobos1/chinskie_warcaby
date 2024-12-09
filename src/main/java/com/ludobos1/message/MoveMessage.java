@@ -6,6 +6,7 @@ public class MoveMessage implements Message {
   int from2;
   int to1;
   int to2;
+
   public MoveMessage(int from1, int from2, int to1, int to2) {
     type = TypeEnum.MOVE;
     this.from1 = from1;
@@ -14,6 +15,11 @@ public class MoveMessage implements Message {
     this.to2 = to2;
   }
 
+  public String getContent() {
+    return (from1 + "," + from2 + "," + to1 + "," + to2);
+  }
+
+  @Override
   public TypeEnum getType(){
     return type;
   }

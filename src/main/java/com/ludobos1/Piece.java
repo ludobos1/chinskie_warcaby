@@ -1,3 +1,5 @@
+package com.ludobos1;
+
 public class Piece {
     private final String pieceId; 
     private int x, y;            

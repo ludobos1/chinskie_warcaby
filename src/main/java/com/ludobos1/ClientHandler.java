@@ -1,7 +1,7 @@
 package com.ludobos1;
 
 import com.ludobos1.message.Message;
-import com.ludobos1.message.TypeEnum;
+import com.ludobos1.message.SessionsMessage;
 
 import java.io.*;
 import java.net.Socket;
@@ -13,6 +13,7 @@ public class ClientHandler implements Runnable {
   private ObjectInputStream in;
   private ObjectOutputStream out;
   private static final List<ClientHandler> clients = new ArrayList<>();
+  private static final List<GameSession> gameSessions = new ArrayList<>();
 
   public ClientHandler(Socket socket) {
     this.clientSocket = socket;
@@ -47,25 +48,43 @@ public class ClientHandler implements Runnable {
         switch (message.getType()) {
             case MOVE:
                 System.out.println("Odebrano ruch od klienta.");
-                broadcastMessage(message); 
+                for (GameSession gameSession : gameSessions) {
+                  if (gameSession.getPlayers().contains(this)) {
+                    gameSession.broadcastMessage(message);
+                  }
+                }
                 break;
             case JOIN:
                 System.out.println("Klient dołączył do gry.");
+                int index = Integer.parseInt(message.getContent());
+                gameSessions.get(index).joinClient(this);
+                break;
+            case CREATE:
+                System.out.println("Klient dodał sesje.");
+                String content = message.getContent();
+                String[] split = content.split(",");
+
+                Board board = new Board(Integer.parseInt(split[0]), Integer.parseInt(split[1]),
+                        Integer.parseInt(split[2]), Integer.parseInt(split[3]));
+                GameSession gameSession = new GameSession(board, split[4]);
+                gameSession.joinClient(this);
+                gameSessions.add(gameSession);
+                List<String> sessions = new ArrayList<>();
+                for (GameSession gameSession2 : gameSessions) {
+                  sessions.add(gameSession2.getName());
+                }
+                Message sessionsMessage = new SessionsMessage(sessions);
+                for (ClientHandler client : clients) {
+                  client.sendMessage(sessionsMessage);
+                  System.out.println("wysłano wiadomość do klienta");
+                }
                 break;
             default:
                 System.out.println("Nieznany typ wiadomości: " + message.getType());
         }
     }
 
-    private void broadcastMessage(Message message) {
-        synchronized (clients) {
-            for (ClientHandler client : clients) {
-                client.sendMessage(message);
-            }
-        }
-    }
-
-    private void sendMessage(Message message) {
+    public void sendMessage(Message message) {
         try {
             out.writeObject(message);
             out.flush();

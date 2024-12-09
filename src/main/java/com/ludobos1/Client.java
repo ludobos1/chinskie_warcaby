@@ -1,13 +1,13 @@
 package com.ludobos1;
 
+import com.ludobos1.message.CreateMessage;
+import com.ludobos1.message.JoinMessage;
 import com.ludobos1.message.Message;
 import com.ludobos1.message.MoveMessage;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
-import java.util.List;
-import java.util.ArrayList;
 
 
 public class Client {
@@ -18,6 +18,8 @@ public class Client {
   private ObjectInputStream in;
   private Scanner scanner;
   private Socket socket;
+  private boolean isInGameSession = false;
+  private String[] sessions = new String[0];
 
   public static void main(String[] args) {
     Client client = new Client();
@@ -26,7 +28,7 @@ public class Client {
   public void startClient() {
     try {
       connectClient();
-      new Thread(this::recieveMessages);
+      new Thread(this::recieveMessages).start();
       userInput();
     } catch (IOException e) { System.out.println(e.getMessage()); }
   }
@@ -37,7 +39,7 @@ public class Client {
       in = new ObjectInputStream(socket.getInputStream());
       scanner = new Scanner(System.in);
       running = true;
-      System.out.print("Connection to server established");
+      System.out.println("Polaczono z serwerem");
   }
   private void recieveMessages() {
     while (running) {
@@ -54,7 +56,56 @@ public class Client {
   }
   private void userInput() {
     while (running) {
-      System.out.print("Enter move: '(a1,a2) (b1,b2)' or 'exit' to exit the game");
+      if (!isInGameSession) {
+        if (sessions.length > 0) {
+          System.out.println("Dostepne gry:");
+          int index = 0;
+          for (String session : sessions) {
+            System.out.println(index + ". " + session);
+            index++;
+          }
+        } else {
+          System.out.println("Brak dostępnych gier");
+        }
+        System.out.println("Wpisz '(x1,x2,y1,y2) name' gdzie x i y to rozmiary planszy a name to nazwa sesji aby" +
+                " stworzyc nowa gre lub podaj numer istniejacej gry z listy aby dolaczyc");
+        String input = scanner.nextLine();
+        String[] tok = input.split(" ");
+        if (tok.length==1) {
+          try {
+            int x = Integer.parseInt(tok[0]);
+            if (x >= sessions.length || x < 0) {
+              System.out.println("zla dana");
+              continue;
+            } else {
+              Message joinMessage = new JoinMessage(x);
+              sendMessage(joinMessage);
+              isInGameSession = true;
+              continue;
+            }
+          } catch(NumberFormatException e) {
+            System.out.println("zla dana");
+            continue;
+          }
+        }
+        String name = tok[1];
+        String trim = tok[0].substring(1, tok[0].length() - 1);
+        String[] tokens = trim.split(",");
+        if (tokens.length != 4) {
+          System.out.println("zla liczba argumentow");
+          continue;
+        }
+        try {
+        Message createMessage = new CreateMessage(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]),
+                Integer.parseInt(tokens[2]), Integer.parseInt(tokens[3]), name);
+        sendMessage(createMessage);
+        isInGameSession = true;
+        } catch (NumberFormatException e) {
+          System.out.println("zle dane");
+        }
+        continue;
+      }
+      System.out.println("Podaj ruch wpisujac: '(a1,a2) (b1,b2)' lub 'exit' aby wyjsc");
       String input = scanner.nextLine();
       if (input.equals("exit")) {
         System.out.println("Closing client");
@@ -64,7 +115,7 @@ public class Client {
       }
       String[] splitted = input.split(" ");
       if (splitted.length != 2) {
-        System.out.println("Invalid input");
+        System.out.println("zle dane");
         continue;
       }
 
@@ -73,12 +124,16 @@ public class Client {
       String[] from = fromTrim.split(",");
       String[] to = toTrim.split(",");
       if (to.length != 2 || from.length != 2) {
-        System.out.println("Invalid input -  too much move arguments");
+        System.out.println("zle dane");
         continue;
       }
-      Message moveMessage = new MoveMessage(Integer.parseInt(from[0]), Integer.parseInt(from[1]),
-              Integer.parseInt(to[0]), Integer.parseInt(to[1]));
-      sendMessage(moveMessage);
+      try {
+        Message moveMessage = new MoveMessage(Integer.parseInt(from[0]), Integer.parseInt(from[1]),
+                Integer.parseInt(to[0]), Integer.parseInt(to[1]));
+        sendMessage(moveMessage);
+      } catch (NumberFormatException e) {
+        System.out.println("zle dane");
+      }
     }
   }
   private void closeConnection() {
@@ -96,9 +151,12 @@ public class Client {
   }
   private void handleMessage(Message message){
     switch (message.getType()) {
-      case UPDATE:
+      case MOVE:
         System.out.print("Recieved opps move");
-        // Dodać handler dla update
+        // Dodać handler dla move
+        break;
+      case SESSIONS:
+        sessions = message.getContent().split(",");
         break;
     }
   }
