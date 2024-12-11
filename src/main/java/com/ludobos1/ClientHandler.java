@@ -14,6 +14,7 @@ public class ClientHandler implements Runnable {
   private ObjectOutputStream out;
   private static final List<ClientHandler> clients = new ArrayList<>();
   private static final List<GameSession> gameSessions = new ArrayList<>();
+  private static final List<String> sessions = new ArrayList<>();
 
   public ClientHandler(Socket socket) {
     this.clientSocket = socket;
@@ -32,6 +33,10 @@ public class ClientHandler implements Runnable {
             synchronized (clients) {
                 clients.add(this);
                 System.out.println("Nowy klient połączony. Liczba klientów: " + clients.size());
+                if (!sessions.isEmpty()) {
+                  Message sessionsMessage = new SessionsMessage(sessions);
+                  this.sendMessage(sessionsMessage);
+                }
             }
             while (true) {
                 Message message = (Message) in.readObject();
@@ -69,14 +74,10 @@ public class ClientHandler implements Runnable {
                 GameSession gameSession = new GameSession(board, split[4]);
                 gameSession.joinClient(this);
                 gameSessions.add(gameSession);
-                List<String> sessions = new ArrayList<>();
-                for (GameSession gameSession2 : gameSessions) {
-                  sessions.add(gameSession2.getName());
-                }
+                sessions.add(gameSession.getName());
                 Message sessionsMessage = new SessionsMessage(sessions);
                 for (ClientHandler client : clients) {
                   client.sendMessage(sessionsMessage);
-                  System.out.println("wysłano wiadomość do klienta");
                 }
                 break;
             default:

@@ -12,7 +12,7 @@ import java.util.Scanner;
 
 public class Client {
   private static final String SERVER_ADDRESS = "localhost";
-  private static final int SERVER_PORT = 8888;
+  private static final int SERVER_PORT = 1234;
   private boolean running;
   private ObjectOutputStream out;
   private ObjectInputStream in;
@@ -57,32 +57,28 @@ public class Client {
   private void userInput() {
     while (running) {
       if (!isInGameSession) {
-        if (sessions.length > 0) {
-          System.out.println("Dostepne gry:");
-          int index = 0;
-          for (String session : sessions) {
-            System.out.println(index + ". " + session);
-            index++;
-          }
-        } else {
-          System.out.println("Brak dostępnych gier");
-        }
+        writeSessions(sessions);
         System.out.println("Wpisz '(x1,x2,y1,y2) name' gdzie x i y to rozmiary planszy a name to nazwa sesji aby" +
-                " stworzyc nowa gre lub podaj numer istniejacej gry z listy aby dolaczyc");
+                " stworzyc nowa gre lub podaj numer istniejacej gry z listy aby dolaczyc. 'exit' - wyjscie");
         String input = scanner.nextLine();
         String[] tok = input.split(" ");
+        if (tok[0].equals("exit")) {
+          System.out.println("Closing client");
+          running = false;
+          closeConnection();
+          break;
+        }
         if (tok.length==1) {
           try {
             int x = Integer.parseInt(tok[0]);
             if (x >= sessions.length || x < 0) {
               System.out.println("zla dana");
-              continue;
             } else {
               Message joinMessage = new JoinMessage(x);
               sendMessage(joinMessage);
               isInGameSession = true;
-              continue;
             }
+            continue;
           } catch(NumberFormatException e) {
             System.out.println("zla dana");
             continue;
@@ -152,11 +148,14 @@ public class Client {
   private void handleMessage(Message message){
     switch (message.getType()) {
       case MOVE:
-        System.out.print("Recieved opps move");
+        System.out.println("Recieved move");
         // Dodać handler dla move
         break;
       case SESSIONS:
         sessions = message.getContent().split(",");
+        if(!isInGameSession) {
+          writeSessions(sessions);
+        }
         break;
     }
   }
@@ -165,5 +164,17 @@ public class Client {
       out.writeObject(message);
       out.flush();
     } catch(IOException e) { System.out.println("Error sending message"); }
+  }
+  private void writeSessions(String[] sessions) {
+    if (sessions.length > 0) {
+      System.out.println("Dostepne gry:");
+      int index = 0;
+      for (String session : sessions) {
+        System.out.println(index + ". " + session);
+        index++;
+      }
+    } else {
+      System.out.println("Brak dostępnych gier");
+    }
   }
 }
