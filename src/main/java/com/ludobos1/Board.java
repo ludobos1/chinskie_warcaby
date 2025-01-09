@@ -19,24 +19,14 @@ public class Board {
     private final Map<Character, String> playerSectors = new HashMap<>(); // Mapowanie ID gracza do sektora
 
 
-    public Board(int sideLength, char playerId) {
+    public Board(int sideLength) {
         if (sideLength < 1) {
             throw new IllegalArgumentException("Długość boku musi być większa niż 0");
         }
         allowedPositions = generateStarBoard(sideLength);
-        this.playerId=playerId;
     }
 
     public List<int[]> generateStarBoard(int sideLength) {
-        List<int[]> positions = new ArrayList<>();
-        List<int[]> p1 = new ArrayList<>();
-        List<int[]> p2 = new ArrayList<>();
-        List<int[]> p3 = new ArrayList<>();
-        List<int[]> p4 = new ArrayList<>();
-        List<int[]> p5 = new ArrayList<>();
-        List<int[]> p6 = new ArrayList<>();
-
-
         // Górna i środkowa część sześciokąta
         int rowWidth = sideLength;
         int startX = sideLength;

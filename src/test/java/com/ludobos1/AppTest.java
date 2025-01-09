@@ -27,7 +27,7 @@ public class AppTest {
     }
     @BeforeEach
     public void setUp() {
-        board = new Board(5, 'A');  
+        board = new Board(5);  
     }
 
     @Test
@@ -39,7 +39,7 @@ public class AppTest {
 
     @Test
     public void testAddPiece() {
-        Board board = new Board(5, 'A');
+        Board board = new Board(5);
     
         board.addPiece("A1", 1, 1);
         
@@ -57,7 +57,7 @@ public class AppTest {
 
     @Test
 public void testMovePieceToOccupiedField() {
-    Board board = new Board(5,'A');
+    Board board = new Board(5);
     
     board.addPiece("A1", 1, 1);  
     board.addPiece("B1", 2, 2);  
@@ -78,7 +78,7 @@ public void testMovePieceToOccupiedField() {
 
     @Test
     void testInitializePlayerPieces() {
-        Board board = new Board(5, 'A');
+        Board board = new Board(5);
         board.generateStarBoard(5);
         List<int[]> sector = board.findFirstFreeSector();
         board.getSectorNumber(sector);

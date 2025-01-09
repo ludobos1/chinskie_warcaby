@@ -15,8 +15,6 @@ public class ClientHandler implements Runnable {
   private static final List<ClientHandler> clients = new ArrayList<>();
   private static final List<GameSession> gameSessions = new ArrayList<>();
   private static final List<String> sessions = new ArrayList<>();
-  //playerId to litera
-  private final char playerId='A';
 
   public ClientHandler(Socket socket) {
     this.clientSocket = socket;
@@ -72,7 +70,7 @@ public class ClientHandler implements Runnable {
                 String[] split = content.split(",");
 
             // jakie dane sa w parseint split 0 split 1?? //
-            Board board = new Board(Integer.parseInt(split[0]), playerId);
+            Board board = new Board(Integer.parseInt(split[0]));
                 GameSession gameSession = new GameSession(board, split[4]);
                 gameSession.joinClient(this);
                 gameSessions.add(gameSession);
