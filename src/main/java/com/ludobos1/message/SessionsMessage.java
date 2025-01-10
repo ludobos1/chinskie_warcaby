@@ -1,7 +1,5 @@
 package com.ludobos1.message;
 
-import com.ludobos1.GameSession;
-
 import java.util.List;
 
 public class SessionsMessage implements Message {

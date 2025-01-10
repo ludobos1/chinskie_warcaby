@@ -3,10 +3,14 @@ package com.ludobos1;
 import com.ludobos1.message.Message;
 import com.ludobos1.message.SessionsMessage;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ClientHandler implements Runnable {
   private final Socket clientSocket;
@@ -15,6 +19,7 @@ public class ClientHandler implements Runnable {
   private static final List<ClientHandler> clients = new ArrayList<>();
   private static final List<GameSession> gameSessions = new ArrayList<>();
   private static final List<String> sessions = new ArrayList<>();
+  private static final Map<ClientHandler, GameSession> gameSessionMap = new HashMap<>();
 
   public ClientHandler(Socket socket) {
     this.clientSocket = socket;
@@ -52,17 +57,19 @@ public class ClientHandler implements Runnable {
      private void handleMessage(Message message) {
         switch (message.getType()) {
             case MOVE:
-                System.out.println("Odebrano ruch od klienta.");
-                for (GameSession gameSession : gameSessions) {
-                  if (gameSession.getPlayers().contains(this)) {
-                    gameSession.broadcastMessage(message);
-                  }
-                }
+              System.out.println("Odebrano ruch od klienta.");
+              GameSession session = gameSessionMap.get(this);
+              if (session != null) {
+                session.broadcastMessage(message);
+              } else {
+                System.out.println("Klient nie należy do żadnej sesji!");
+              }
                 break;
             case JOIN:
                 System.out.println("Klient dołączył do gry.");
                 int index = Integer.parseInt(message.getContent());
                 gameSessions.get(index).joinClient(this);
+                gameSessionMap.put(this, gameSessions.get(index));
                 break;
             case CREATE:
                 System.out.println("Klient dodał sesje.");
@@ -70,10 +77,11 @@ public class ClientHandler implements Runnable {
                 String[] split = content.split(",");
 
             // jakie dane sa w parseint split 0 split 1?? //
-            Board board = new Board(Integer.parseInt(split[0]));
-                GameSession gameSession = new GameSession(board, split[4]);
+                Board board = new Board(Integer.parseInt(split[0]));
+                GameSession gameSession = new GameSession(board, split[2]);
                 gameSession.joinClient(this);
                 gameSessions.add(gameSession);
+                gameSessionMap.put(this, gameSession);
                 sessions.add(gameSession.getName());
                 Message sessionsMessage = new SessionsMessage(sessions);
                 for (ClientHandler client : clients) {
@@ -99,6 +107,11 @@ public class ClientHandler implements Runnable {
             synchronized (clients) {
                 clients.remove(this);
                 System.out.println("Klient rozłączony. Liczba klientów: " + clients.size());
+            }
+            GameSession gameSession = gameSessionMap.get(this);
+            if (gameSession != null) {
+              gameSessionMap.remove(this);
+              gameSession.leaveClient(this);
             }
             if (clientSocket != null) {
                 clientSocket.close();

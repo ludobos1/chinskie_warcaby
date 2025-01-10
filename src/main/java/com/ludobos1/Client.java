@@ -3,14 +3,27 @@ package com.ludobos1;
 import com.ludobos1.message.CreateMessage;
 import com.ludobos1.message.JoinMessage;
 import com.ludobos1.message.Message;
-import com.ludobos1.message.MoveMessage;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Scanner;
 
 
-public class Client {
+public class Client extends Application {
   private static final String SERVER_ADDRESS = "localhost";
   private static final int SERVER_PORT = 1234;
   private boolean running;
@@ -20,16 +33,50 @@ public class Client {
   private Socket socket;
   private boolean isInGameSession = false;
   private String[] sessions = new String[0];
+  private BorderPane menuRoot = new BorderPane();
+  private Stage primaryStage;
+
+  @Override
+  public void start(Stage primaryStage) {
+    Client client = new Client();
+    client.primaryStage = primaryStage;
+    client.startClient();
+    client.menu();
+  }
 
   public static void main(String[] args) {
-    Client client = new Client();
-    client.startClient();
+    launch(args);
   }
+
+  public void menu() {
+    Scene scene = new Scene(menuRoot, 800, 800);
+    Button createButton = new Button("Create");
+    primaryStage.setOnCloseRequest(event -> {
+      System.out.println("Zamykam aplikację...");
+      closeConnection();
+      running = false;
+      Platform.exit();
+    });
+    createButton.setOnAction(event -> createGame());
+    menuRoot.setTop(createButton);
+
+    primaryStage.setTitle("Menu");
+    primaryStage.setScene(scene);
+    primaryStage.show();
+  }
+
+  public void game() {
+    Pane pane = new Pane();
+    Scene gameScene = new Scene(pane, 1000, 1000);
+
+    primaryStage.setScene(gameScene);
+  }
+
   public void startClient() {
     try {
       connectClient();
       new Thread(this::recieveMessages).start();
-      userInput();
+      //userInput();
     } catch (IOException e) { System.out.println(e.getMessage()); }
   }
   private void connectClient() throws IOException {
@@ -54,11 +101,119 @@ public class Client {
       }
     }
   }
-  private void userInput() {
+
+  private void createGame(){
+    Stage popupStage = new Stage();
+    popupStage.initModality(Modality.APPLICATION_MODAL); // Blokuje inne okna
+    popupStage.setTitle("Stwórz grę");
+
+    ComboBox<String> variants = new ComboBox<>();
+    variants.getItems().addAll("wariant 1", "wariant 2");
+    variants.setValue("wariant 1");
+
+    ComboBox<String> playerNumber = new ComboBox<>();
+    playerNumber.getItems().addAll("2", "3", "4", "6");
+    playerNumber.setValue("2");
+
+    TextField textField = new TextField();
+    textField.setPromptText("Wpisz nazwę pokoju");
+
+    Button submitButton = new Button("Zatwierdź");
+
+    // Dodajemy handler dla przycisku zatwierdzenia
+    submitButton.setOnAction(submitEvent -> {
+      int playerNum = Integer.parseInt(playerNumber.getValue());
+      String selectedOption = variants.getValue();
+      String textInput = textField.getText();
+      int variant;
+      if (selectedOption.equals("wariant 1")) {
+        variant = 1;
+      } else {
+        variant = 2;
+      }
+      Message message = new CreateMessage(playerNum, variant, textInput);
+      sendMessage(message);
+      game();
+      popupStage.close();
+    });
+
+    VBox vbox = new VBox(10);
+    vbox.getChildren().addAll(playerNumber, variants, textField, submitButton);
+
+    Scene scene = new Scene(vbox, 300, 200);
+    popupStage.setScene(scene);
+
+    isInGameSession = true;
+
+    popupStage.show();
+  }
+
+  private void closeConnection() {
+    try{
+      if (socket != null) {
+        socket.close();
+      }
+      if (out != null) {
+        out.close();
+      }
+      if (in != null) {
+        in.close();
+      }
+    } catch (IOException e) { System.out.println(e.getMessage()); }
+  }
+  private void handleMessage(Message message){
+    switch (message.getType()) {
+      case MOVE:
+        System.out.println("Recieved move");
+        // Dodać handler dla move
+        break;
+      case SESSIONS:
+        sessions = message.getContent().split(",");
+        if(!isInGameSession) {
+          writeSessions(sessions);
+        }
+        break;
+    }
+  }
+  private void sendMessage(Message message) {
+    try {
+      out.writeObject(message);
+      out.flush();
+    } catch(IOException e) { System.out.println("Error sending message"); }
+  }
+  private void writeSessions(String[] sessions) {
+    Platform.runLater(() -> {
+      if (sessions.length > 0) {
+        VBox vBox = new VBox();
+        TextArea textArea = new TextArea("Dostepne gry:");
+        vBox.getChildren().add(textArea);
+        int index = 0;
+        for (String session : sessions) {
+          Button sessionButton = new Button(index + ". " + session);
+          int sessionIndex = index;
+          sessionButton.setOnAction(event -> {
+            Message message = new JoinMessage(sessionIndex);
+            sendMessage(message);
+            game();
+            isInGameSession = true;
+          });
+          vBox.getChildren().add(sessionButton);
+          index++;
+        }
+        menuRoot.setCenter(vBox);
+      } else {
+        TextArea textArea = new TextArea("Brak dostępnych gier.");
+        menuRoot.setCenter(textArea);
+      }
+    });
+  }
+}
+
+/*private void userInput() {
     while (running) {
       if (!isInGameSession) {
         writeSessions(sessions);
-        System.out.println("Wpisz '(x1,x2,y1,y2) name' gdzie x i y to rozmiary planszy a name to nazwa sesji aby" +
+        System.out.println("Wpisz 'x name' gdzie x rozmiar boku planszy a name to nazwa sesji aby" +
                 " stworzyc nowa gre lub podaj numer istniejacej gry z listy aby dolaczyc. 'exit' - wyjscie");
         String input = scanner.nextLine();
         String[] tok = input.split(" ");
@@ -85,15 +240,9 @@ public class Client {
           }
         }
         String name = tok[1];
-        String trim = tok[0].substring(1, tok[0].length() - 1);
-        String[] tokens = trim.split(",");
-        if (tokens.length != 4) {
-          System.out.println("zla liczba argumentow");
-          continue;
-        }
+        String number = tok[0];
         try {
-        Message createMessage = new CreateMessage(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]),
-                Integer.parseInt(tokens[2]), Integer.parseInt(tokens[3]), name);
+        Message createMessage = new CreateMessage(Integer.parseInt(number), name);
         sendMessage(createMessage);
         isInGameSession = true;
         } catch (NumberFormatException e) {
@@ -131,50 +280,4 @@ public class Client {
         System.out.println("zle dane");
       }
     }
-  }
-  private void closeConnection() {
-    try{
-      if (socket != null) {
-        socket.close();
-      }
-      if (out != null) {
-        out.close();
-      }
-      if (in != null) {
-        in.close();
-      }
-    } catch (IOException e) { System.out.println(e.getMessage()); }
-  }
-  private void handleMessage(Message message){
-    switch (message.getType()) {
-      case MOVE:
-        System.out.println("Recieved move");
-        // Dodać handler dla move
-        break;
-      case SESSIONS:
-        sessions = message.getContent().split(",");
-        if(!isInGameSession) {
-          writeSessions(sessions);
-        }
-        break;
-    }
-  }
-  private void sendMessage(Message message) {
-    try {
-      out.writeObject(message);
-      out.flush();
-    } catch(IOException e) { System.out.println("Error sending message"); }
-  }
-  private void writeSessions(String[] sessions) {
-    if (sessions.length > 0) {
-      System.out.println("Dostepne gry:");
-      int index = 0;
-      for (String session : sessions) {
-        System.out.println(index + ". " + session);
-        index++;
-      }
-    } else {
-      System.out.println("Brak dostępnych gier");
-    }
-  }
-}
+  }*/

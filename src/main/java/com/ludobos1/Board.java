@@ -267,9 +267,9 @@ public class Board {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("Pozycje na planszy:\n");
+        StringBuilder sb = new StringBuilder();
         for (int[] pos : allowedPositions) {
-            sb.append("(").append(pos[0]).append(", ").append(pos[1]).append(")\n");
+            sb.append(pos[0]).append(",").append(pos[1]).append(" ");
         }
         return sb.toString();
     }
