@@ -17,16 +17,19 @@ public class Board {
     private final List<int[]> allowedPositions;
     private List<Piece> pieces = new ArrayList<>();
     private final Map<Character, String> playerSectors = new HashMap<>(); // Mapowanie ID gracza do sektora
+    private int sideLength;
 
-
-    public Board(int sideLength) {
-        if (sideLength < 1) {
-            throw new IllegalArgumentException("Długość boku musi być większa niż 0");
-        }
-        allowedPositions = generateStarBoard(sideLength);
+    public Board(int gameType) {
+        this.gameType=gameType;
+        allowedPositions = generateStarBoard(gameType);
     }
 
-    public List<int[]> generateStarBoard(int sideLength) {
+
+
+    public List<int[]> generateStarBoard(int gameType) {
+        if(gameType==1)
+        sideLength=5; //np. jesli gameType bedzie 1 to normalna plansza, no tu jeszcze ogarniemy jakie plansze w ogóle chcemy
+
         // Górna i środkowa część sześciokąta
         int rowWidth = sideLength;
         int startX = sideLength;
@@ -271,6 +274,26 @@ public class Board {
         for (int[] pos : allowedPositions) {
             sb.append("(").append(pos[0]).append(", ").append(pos[1]).append(")\n");
         }
+        return sb.toString();
+    }
+
+    public String getAllPiecesInfo() {
+        if (pieces.isEmpty()) {
+            return "";
+        }
+    
+        StringBuilder sb = new StringBuilder();
+        for (Piece piece : pieces) {
+            sb.append(piece.getX()).append(",")
+              .append(piece.getY()).append(",")
+              .append(piece.getPieceId().charAt(0)).append(","); 
+        }
+    
+        // Usunięcie ostatniego przecinka
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
+    
         return sb.toString();
     }
 }
