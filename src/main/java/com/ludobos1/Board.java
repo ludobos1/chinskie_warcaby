@@ -202,7 +202,7 @@ public class Board {
     }
 
     public boolean isLegal(int oldX, int oldY, int newX, int newY) {
-        if (!isWithinBoard(oldX, oldY) || !isWithinBoard(newX, newY)) {
+        if (!isWithinBoard(newX, newY)) {
             System.out.println("Nielegalny ruch – współrzędne poza dozwolonym obszarem gry.");
             return false;
         }
@@ -225,29 +225,42 @@ public class Board {
             return false;
         }
 
-        int deltaX = Math.abs(newX - oldX);
-        int deltaY = Math.abs(newY - oldY);
+        return canReachByHopping(oldX, oldY, newX, newY, new boolean[allowedPositions.size()]);
+    }
 
-        if (deltaX <= 1 && deltaY <= 1) {
-            return true;
-        }
+    private boolean canReachByHopping(int currentX, int currentY, int targetX, int targetY, boolean[] visited) {
+    if (currentX == targetX && currentY == targetY) {
+        return true; 
+    }
 
-        if (deltaX == 2 || deltaY == 2) {
-            int middleX = (oldX + newX) / 2;
-            int middleY = (oldY + newY) / 2;
+    int currentIndex = getIndex(currentX, currentY);
+    if (currentIndex == -1 || visited[currentIndex]) {
+        return false; 
+    }
+    visited[currentIndex] = true;
 
-            if (!isFieldFree(middleX, middleY)) {
-                return true;
-            } else {
-                System.out.println("Nielegalny skok – brak pionka na polu (" + middleX + ", " + middleY + ").");
-                return false;
+    // Możliwe kierunki skoku
+    int[][] directions = {
+        {2, 0}, {-2, 0}, {0, 2}, {0, -2}, {2, 2}, {-2, -2}, {2, -2}, {-2, 2}
+    };
+
+    for (int[] dir : directions) {
+        int middleX = currentX + dir[0] / 2;
+        int middleY = currentY + dir[1] / 2;
+        int nextX = currentX + dir[0];
+        int nextY = currentY + dir[1];
+
+        // Sprawdzenie, czy możemy przeskoczyć przez środkowe pole i wylądować na następne
+        if (!isFieldFree(middleX, middleY) && isFieldFree(nextX, nextY)) {
+            if (canReachByHopping(nextX, nextY, targetX, targetY, visited)) {
+                return true; // Można osiągnąć cel
             }
         }
-       
-
-        System.out.println("Nielegalny ruch – niedozwolona odległość.");
-        return false;
     }
+
+    return false; // Nie można osiągnąć celu
+}
+
 
     private boolean isWithinBoard(int x, int y) {
         for (int[] position : allowedPositions) {
