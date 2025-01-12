@@ -269,8 +269,29 @@ public class Board {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (int[] pos : allowedPositions) {
-            sb.append(pos[0]).append(",").append(pos[1]).append(" ");
+            sb.append(pos[0]).append(",").append(pos[1]).append(",");
         }
+        sb.setLength(sb.length() - 1);
+        return sb.toString();
+    }
+
+    public String getAllPiecesInfo() {
+        if (pieces.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (Piece piece : pieces) {
+            sb.append(piece.getX()).append(",")
+                    .append(piece.getY()).append(",")
+                    .append(piece.getPieceId().charAt(0)).append(",");
+        }
+
+        // Usunięcie ostatniego przecinka
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
+
         return sb.toString();
     }
 }

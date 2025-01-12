@@ -2,6 +2,7 @@ package com.ludobos1;
 
 import com.ludobos1.message.Message;
 import com.ludobos1.message.SessionsMessage;
+import com.ludobos1.message.UpdateMessage;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -60,7 +61,8 @@ public class ClientHandler implements Runnable {
               System.out.println("Odebrano ruch od klienta.");
               GameSession session = gameSessionMap.get(this);
               if (session != null) {
-                session.broadcastMessage(message);
+                String pieces = session.board.getAllPiecesInfo();
+                session.broadcastMessage(new UpdateMessage(pieces));
               } else {
                 System.out.println("Klient nie należy do żadnej sesji!");
               }
@@ -70,12 +72,12 @@ public class ClientHandler implements Runnable {
                 int index = Integer.parseInt(message.getContent());
                 gameSessions.get(index).joinClient(this);
                 gameSessionMap.put(this, gameSessions.get(index));
+                sendBoardState(index);
                 break;
             case CREATE:
                 System.out.println("Klient dodał sesje.");
                 String content = message.getContent();
                 String[] split = content.split(",");
-
             // jakie dane sa w parseint split 0 split 1?? //
                 Board board = new Board(Integer.parseInt(split[0]));
                 GameSession gameSession = new GameSession(board, split[2]);
@@ -83,6 +85,7 @@ public class ClientHandler implements Runnable {
                 gameSessions.add(gameSession);
                 gameSessionMap.put(this, gameSession);
                 sessions.add(gameSession.getName());
+                sendBoardState(gameSessions.indexOf(gameSession));
                 Message sessionsMessage = new SessionsMessage(sessions);
                 for (ClientHandler client : clients) {
                   client.sendMessage(sessionsMessage);
@@ -100,6 +103,13 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             System.out.println("Błąd podczas wysyłania wiadomości: " + e.getMessage());
         }
+    }
+
+    public void sendBoardState(int sessionIndex) {
+      String pieces = gameSessions.get(sessionIndex).board.getAllPiecesInfo();
+      String boardSize = gameSessions.get(sessionIndex).board.toString();
+      Message updateMessage = new UpdateMessage(pieces, boardSize);
+      this.sendMessage(updateMessage);
     }
 
     private void disconnect() {

@@ -11,10 +11,12 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.scene.paint.Color;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -35,6 +37,7 @@ public class Client extends Application {
   private String[] sessions = new String[0];
   private BorderPane menuRoot = new BorderPane();
   private Stage primaryStage;
+  private int[][] boardTiles;
 
   @Override
   public void start(Stage primaryStage) {
@@ -66,10 +69,20 @@ public class Client extends Application {
   }
 
   public void game() {
-    Pane pane = new Pane();
-    Scene gameScene = new Scene(pane, 1000, 1000);
+    Platform.runLater(() -> {
+      GridPane gp = new GridPane();
+      gp.setHgap(10);
+      gp.setVgap(10);
+      for (int[] boardTile : boardTiles) {
+        Circle circle = new Circle(15);
+        circle.setFill(Color.RED);
+        circle.setStroke(Color.BLACK);
+        gp.add(circle, boardTile[0], boardTile[1]);
+      }
+      Scene gameScene = new Scene(gp, 1000, 1000);
 
-    primaryStage.setScene(gameScene);
+      primaryStage.setScene(gameScene);
+    });
   }
 
   public void startClient() {
@@ -133,7 +146,6 @@ public class Client extends Application {
       }
       Message message = new CreateMessage(playerNum, variant, textInput);
       sendMessage(message);
-      game();
       popupStage.close();
     });
 
@@ -173,6 +185,24 @@ public class Client extends Application {
           writeSessions(sessions);
         }
         break;
+      case UPDATE:
+        System.out.println("Recieved update");
+        String[] updateSplit = message.getContent().split("/");
+        if (updateSplit.length == 2) {
+          String[] tiles = updateSplit[1].split(",");
+          boardTiles = new int[tiles.length/2][2];
+          for (int i = 0; i < tiles.length/2; i++) {
+            try {
+              boardTiles[i][0] = Integer.parseInt(tiles[2 * i]);
+              boardTiles[i][1] = Integer.parseInt(tiles[2 * i + 1]);
+            } catch (NumberFormatException e) {
+              System.out.println(e.getMessage());
+            }
+          }
+          if (boardTiles != null) {
+            game();
+          }
+        }
     }
   }
   private void sendMessage(Message message) {
@@ -194,7 +224,6 @@ public class Client extends Application {
           sessionButton.setOnAction(event -> {
             Message message = new JoinMessage(sessionIndex);
             sendMessage(message);
-            game();
             isInGameSession = true;
           });
           vBox.getChildren().add(sessionButton);
