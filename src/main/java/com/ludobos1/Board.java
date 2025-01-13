@@ -16,7 +16,7 @@ public class Board {
     private final List<int[]> allowedPositions= new ArrayList<>();
     private List<Piece> pieces = new ArrayList<>();
     private final Map<Character, String> playerSectors = new HashMap<>(); // Mapowanie ID gracza do sektora
-    private int gameType;
+    private final int gameType;
     private int sideLength;
 
     public Board(int gameType) {
@@ -25,7 +25,7 @@ public class Board {
 
 
 
-    public List<int[]> generateStarBoard(int gameType) {
+    public List<int[]> generateStarBoard() {
         if(gameType==1) sideLength=5; //np. jesli gameType bedzie 1 to normalna plansza, no tu jeszcze ogarniemy jakie plansze w ogóle chcemy
         int startX;
         int startY;

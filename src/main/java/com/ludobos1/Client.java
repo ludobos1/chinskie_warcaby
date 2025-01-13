@@ -137,14 +137,14 @@ public class Client extends Application {
     submitButton.setOnAction(submitEvent -> {
       int playerNum = Integer.parseInt(playerNumber.getValue());
       String selectedOption = variants.getValue();
-      String textInput = textField.getText();
+      String gameName = textField.getText();
       int variant;
       if (selectedOption.equals("wariant 1")) {
         variant = 1;
       } else {
         variant = 2;
       }
-      Message message = new CreateMessage(playerNum, variant, textInput);
+      Message message = new CreateMessage(playerNum, variant, gameName);
       sendMessage(message);
       popupStage.close();
     });

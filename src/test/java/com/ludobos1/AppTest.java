@@ -14,7 +14,7 @@ public class AppTest {
     @BeforeEach
     public void setUp() {
         board = new Board(1);  // Przykładowy typ gry
-        board.generateStarBoard(1); // Generowanie planszy dla testów
+        board.generateStarBoard(); // Generowanie planszy dla testów
     }
 
     @Test

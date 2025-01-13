@@ -79,7 +79,8 @@ public class ClientHandler implements Runnable {
                 String content = message.getContent();
                 String[] split = content.split(",");
             // jakie dane sa w parseint split 0 split 1?? //
-                Board board = new Board(Integer.parseInt(split[0]));
+                Board board = new Board(Integer.parseInt(split[1]));
+                board.generateStarBoard();
                 GameSession gameSession = new GameSession(board, split[2]);
                 gameSession.joinClient(this);
                 gameSessions.add(gameSession);
