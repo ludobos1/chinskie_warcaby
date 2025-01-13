@@ -6,7 +6,6 @@ import java.util.HashMap;
 
 
 public class Board {
-    private char playerId;
     private final List<int[]> p1 = new ArrayList<>();
     private final List<int[]> p2 = new ArrayList<>();
     private final List<int[]> p3 = new ArrayList<>();
@@ -32,7 +31,7 @@ public class Board {
 
     public List<int[]> generateStarBoard() {
         List<int[]> allowedPositions = new ArrayList<>();
-        if(gameType==1) sideLength=5; //np. jesli gameType bedzie 1 to normalna plansza, no tu jeszcze ogarniemy jakie plansze w ogóle chcemy
+        sideLength=5;
         int startX;
         int startY;
         int endX;
@@ -133,7 +132,7 @@ public class Board {
         for (int y = startY; y >startY-(sideLength-1)*2; y=y-2) {
             for (int x = startX; x <= endX; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
-                p2.add(new int[]{x, y});
+                p3.add(new int[]{x, y});
             }
             endX--;
             startX++;
@@ -144,17 +143,19 @@ public class Board {
     
     public void initializeAllPlayersPieces(int numberOfPlayers) {
         if (numberOfPlayers == 2) {
-            // Dla 2 graczy: p1 (A), p4 (D)
             initializePlayerPieces('A');
             initializePlayerPieces('D');
-        } else if (numberOfPlayers == 4) {
-            // Dla 4 graczy: p1 (A), p2 (B), p4 (D), p5 (E)
+        } else if(numberOfPlayers==3){
+            initializePlayerPieces('A');
+            initializePlayerPieces('B');
+            initializePlayerPieces('C');
+        }
+            else if (numberOfPlayers == 4) {
             initializePlayerPieces('A');
             initializePlayerPieces('B');
             initializePlayerPieces('D');
             initializePlayerPieces('E');
         } else if (numberOfPlayers == 6) {
-            // Dla 6 graczy: wszystkie sektory
             initializePlayerPieces('A');
             initializePlayerPieces('B');
             initializePlayerPieces('C');
@@ -197,7 +198,7 @@ public class Board {
     public boolean movePiece(String pieceId, int newX, int newY) {
         for (Piece piece : pieces) {
             if (piece.getPieceId().equals(pieceId)) {
-                if (isLegal(pieceId, newX, newY)) {
+                if (isLegal(pieceId, newX, newY,1)) {
                     piece.setPosition(newX, newY);  
                     return true;
                 } else {
@@ -205,18 +206,15 @@ public class Board {
                 }
             }
         }
-        return false;  // Pionek o takim ID nie istnieje
+        return false;  
     }
 
 
     public boolean ifWon(char playerID) {
-        // Pobierz przeciwny sektor dla gracza
         List<int[]> oppositeSector = getOppositeSector(playerID);
         
-        // Sprawdź każdy pionek gracza
         for (Piece piece : pieces) {
             if (piece.getPlayerId() == playerID) {
-                // Jeśli pionek nie znajduje się w przeciwnym sektorze, gra nie jest wygrana
                 boolean isInOppositeSector = false;
                 for (int[] position : oppositeSector) {
                     if (position[0] == piece.getX() && position[1] == piece.getY()) {
@@ -225,13 +223,11 @@ public class Board {
                     }
                 }
                 if (!isInOppositeSector) {
-                    // Przynajmniej jeden pionek nie jest w przeciwnym sektorze, więc nie wygrana
                     return false;
                 }
             }
         }
-    
-        // Jeśli wszystkie pionki gracza są w przeciwnym sektorze, gracz wygrał
+
         return true;
     }
 
@@ -241,11 +237,9 @@ public class Board {
     public List<int[]> getSector(char playerId) {
         List<List<int[]>> sectors = List.of(p1, p2, p3, p4, p5, p6);
 
-        // Przypisanie sektora na podstawie ID gracza
         int sectorIndex = (playerId - 'A') % sectors.size(); // A -> p1, B -> p2, ...
         List<int[]> sector = sectors.get(sectorIndex);
 
-        // Aktualizacja mapy playerSectors
         playerSectors.put(playerId, "p" + (sectorIndex + 1));
 
         return sector;
@@ -258,26 +252,22 @@ public class Board {
         // Przypisanie przeciwnika na podstawie ID gracza
         int sectorIndex = (playerId - 'A') % sectors.size(); // A -> p1, B -> p2, ...
     
-        // Przypisanie sektorów przeciwnika
-        if (sectorIndex == 0) return p4; // A -> p4
-        if (sectorIndex == 1) return p5; // B -> p5
-        if (sectorIndex == 2) return p6; // C -> p6
-        if (sectorIndex == 3) return p1; // D -> p1
-        if (sectorIndex == 4) return p2; // E -> p2
-        if (sectorIndex == 5) return p3; // F -> p3
+        if (sectorIndex == 0) return p4; 
+        if (sectorIndex == 1) return p5; 
+        if (sectorIndex == 2) return p6; 
+        if (sectorIndex == 3) return p1; 
+        if (sectorIndex == 4) return p2; 
+        if (sectorIndex == 5) return p3; 
     
-        return null; // Domyślny przypadek, jeśli nie rozpoznano ID gracza
+        return null; 
     }
     
     public boolean isPieceInOppositeSector(String pieceId) {
-        // Przeszukiwanie listy pionków
         for (Piece piece : pieces) {
             if (piece.getPieceId().equals(pieceId)) {
-                // Pobieramy ID gracza z metody getPlayerId()
                 char playerId = piece.getPlayerId();
                 List<int[]> oppositeSector = getOppositeSector(playerId);
-    
-                // Sprawdzamy, czy pionek znajduje się w przeciwnym sektorze
+
                 for (int[] position : oppositeSector) {
                     if (piece.getX() == position[0] && piece.getY() == position[1]) {
                         return true; // Pionek znajduje się w przeciwnym sektorze
@@ -299,8 +289,8 @@ public class Board {
         return true;
     }
 
-    public boolean isLegal(String pieceId, int newX, int newY) {
-        // Znalezienie pionka na podstawie pieceId
+    public boolean isLegal(String pieceId, int newX, int newY, int gameType) {
+        char playerId=pieceId.charAt(0);
         Piece piece = null;
         for (Piece p : pieces) {
             if (p.getPieceId().equals(pieceId)) {
@@ -314,7 +304,6 @@ public class Board {
             return false;
         }
     
-        // Odczytanie współrzędnych starej pozycji z obiektu Piece
         int oldX = piece.getX();
         int oldY = piece.getY();
     
@@ -330,6 +319,7 @@ public class Board {
             return false;
         }
     
+        
         // Jeśli pionek jest w przeciwnym sektorze, sprawdzamy, czy nie wychodzi z niego
         if (isPieceInOppositeSector(pieceId)) {
             List<int[]> oppositeSector = getOppositeSector(playerId);
@@ -348,14 +338,53 @@ public class Board {
     
         // Sprawdzanie ruchu na sąsiednie pole
         if (isAdjacent(oldX, oldY, newX, newY)) {
-            return true; // Ruch na sąsiednie pole jest legalny
+            return true; 
+        }
+
+    if(gameType==2)
+    {
+        return canSkipWithSymmetryRule(oldX, oldY, newX, newY);
+        // Sprawdzenie, czy ruch jest legalny na podstawie zasady skakania
+    }else{ 
+        return canReachByHopping(oldX, oldY, newX, newY, new boolean[starBoard.size()]);
+        //Sprawdzenie, czy ruch jest legalny na zasadzie gameType 2, symetrycznego skakania
+    }
+    }
+
+    public boolean canSkipWithSymmetryRule(int currentX, int currentY, int targetX, int targetY) {
+        int middleX = (currentX + targetX) / 2;
+        int middleY = (currentY + targetY) / 2;
+    
+        if (isFieldFree(middleX, middleY)) {
+            return false; 
         }
     
-        // Sprawdzenie, czy ruch jest legalny na podstawie zasady skakania
-        return canReachByHopping(oldX, oldY, newX, newY, new boolean[starBoard.size()]);
+        int freeSpacesBefore = countFreeSpacesInLine(currentX, currentY, middleX, middleY);
+    
+        int freeSpacesAfter = countFreeSpacesInLine(middleX, middleY, targetX, targetY);
+    
+        return freeSpacesBefore == freeSpacesAfter;
     }
     
-    // Nowa metoda sprawdzająca, czy pole docelowe jest sąsiednie
+    public int countFreeSpacesInLine(int startX, int startY, int endX, int endY) {
+        int freeSpaces = 0;
+    
+        int dx = (endX - startX) / Math.max(1, Math.abs(endX - startX));
+        int dy = (endY - startY) / Math.max(1, Math.abs(endY - startY));
+    
+        int x = startX+2*dx, y = startY+2*dy;
+        while (x != endX || y != endY) {
+            if (isFieldFree(x, y)) {
+                freeSpaces++;
+            } else {
+                break; 
+            }
+            x += 2*dx;
+            y += 2*dy;
+        }
+    
+        return freeSpaces;
+    }
     private boolean isAdjacent(int oldX, int oldY, int newX, int newY) {
         int[][] directions = {
             {2, 0}, {-2, 0}, {-1, -2}, {1, -2}, {-1, 2}, {1, 2}
@@ -393,15 +422,14 @@ public class Board {
             int nextX = currentX + dir[0];
             int nextY = currentY + dir[1];
 
-        // Sprawdzenie, czy możemy przeskoczyć przez środkowe pole i wylądować na następne
         if (!isFieldFree(middleX, middleY) && isFieldFree(nextX, nextY)) {
             if (canReachByHopping(nextX, nextY, targetX, targetY, visited)) {
-                return true; // Można osiągnąć cel
+                return true; 
             }
         }
     }
 
-    return false; // Nie można osiągnąć celu
+    return false; 
 }
 
 
@@ -424,8 +452,7 @@ public class Board {
         }
         return -1; // Zwraca -1, jeśli nie znaleziono pozycji
     }
-    
-    
+
 
     public List<int[]> getAllowedPositions() {
         return starBoard;
