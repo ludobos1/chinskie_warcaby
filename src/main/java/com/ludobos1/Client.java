@@ -6,10 +6,7 @@ import com.ludobos1.message.Message;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -22,8 +19,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 public class Client extends Application {
@@ -39,6 +35,8 @@ public class Client extends Application {
   private Stage primaryStage;
   private int[][] boardTiles;
   private List<Piece> pieces = new ArrayList<>();
+  private Board board;
+  private Map<Integer, Circle> fields = new HashMap<>();
 
   @Override
   public void start(Stage primaryStage) {
@@ -78,6 +76,8 @@ public class Client extends Application {
         Circle circle = new Circle(15);
         circle.setFill(Color.GREY);
         circle.setStroke(Color.BLACK);
+        int coords = boardTile[0] + 10 * boardTile[1];
+        fields.put(coords, circle);
         gp.add(circle, boardTile[0], boardTile[1]*2);
       }
       Scene gameScene = new Scene(gp, 1000, 1000);
@@ -138,15 +138,17 @@ public class Client extends Application {
       int playerNum = Integer.parseInt(playerNumber.getValue());
       String selectedOption = variants.getValue();
       String gameName = textField.getText();
-      int variant;
-      if (selectedOption.equals("wariant 1")) {
-        variant = 1;
-      } else {
-        variant = 2;
+      if (!gameName.isEmpty()) {
+        int variant;
+        if (selectedOption.equals("wariant 1")) {
+          variant = 1;
+        } else {
+          variant = 2;
+        }
+        Message message = new CreateMessage(playerNum, variant, gameName);
+        sendMessage(message);
+        popupStage.close();
       }
-      Message message = new CreateMessage(playerNum, variant, gameName);
-      sendMessage(message);
-      popupStage.close();
     });
 
     VBox vbox = new VBox(10);
@@ -184,16 +186,18 @@ public class Client extends Application {
       case UPDATE:
         System.out.println("Recieved update");
         String[] updateSplit = message.getContent().split("/");
-        if (updateSplit.length == 2) {
+        if (updateSplit.length > 1) {
           String[] tiles = updateSplit[1].split(",");
           boardTiles = new int[tiles.length/2][2];
+          try {
           for (int i = 0; i < tiles.length/2; i++) {
-            try {
               boardTiles[i][0] = Integer.parseInt(tiles[2 * i]);
               boardTiles[i][1] = Integer.parseInt(tiles[2 * i + 1]);
-            } catch (NumberFormatException e) {
-              System.out.println(e.getMessage());
-            }
+          }
+          board = new BoardBuilder().setVariant(Integer.parseInt(updateSplit[2])).setPlayerNum(Integer.parseInt(updateSplit[3])).build();
+          board.initializeGame();
+          } catch (NumberFormatException e) {
+            System.out.println(e.getMessage());
           }
           if (boardTiles != null) {
             game();
@@ -202,11 +206,49 @@ public class Client extends Application {
         String[] piecesInfo = updateSplit[0].split(",");
         for (int i = 0; i < piecesInfo.length/3; i++) {
           try {
-            Piece piece = new Piece(piecesInfo[3 * i + 2], Integer.parseInt(piecesInfo[3 * i]), Integer.parseInt(piecesInfo[3 * i + 1]));
+            int x = Integer.parseInt(piecesInfo[3 * i]);
+            int y = Integer.parseInt(piecesInfo[3 * i + 1]);
+            Piece piece = new Piece(piecesInfo[3 * i + 2], x, y);
             pieces.add(piece);
+            int coords = x + 10 * y;
+            Platform.runLater(()->{
+              switch(piece.getPlayerId()){
+                case 'A':
+                  fields.get(coords).setFill(Color.RED);
+                  break;
+                case 'B':
+                  fields.get(coords).setFill(Color.BLACK);
+                  break;
+                case 'C':
+                  fields.get(coords).setFill(Color.GREEN);
+                  break;
+                case 'D':
+                  fields.get(coords).setFill(Color.BROWN);
+                  break;
+                case 'E':
+                  fields.get(coords).setFill(Color.BLUE);
+                  break;
+                case 'F':
+                  fields.get(coords).setFill(Color.YELLOW);
+                  break;
+              }
+            });
           } catch (NumberFormatException e) {
             System.out.println(e.getMessage());
           }
+        }
+        board.setPieces(pieces);
+        break;
+      case ERROR:
+        switch (message.getContent()) {
+          case "0":
+            Platform.runLater(()->{
+              Alert alert = new Alert(Alert.AlertType.INFORMATION);
+              alert.setTitle("Error joining session");
+              alert.setHeaderText(null);
+              alert.setContentText("Nie można dołączyć - sesja pełna");
+              alert.showAndWait();
+            });
         }
         break;
       default:

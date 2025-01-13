@@ -14,7 +14,7 @@ public class Board {
     private final List<int[]> p5 = new ArrayList<>();
     private final List<int[]> p6 = new ArrayList<>();
     public List<int[]> starBoard = new ArrayList<>();
-    private final List<Piece> pieces = new ArrayList<>();
+    private List<Piece> pieces = new ArrayList<>();
     private final Map<Character, String> playerSectors = new HashMap<>(); // Mapowanie ID gracza do sektora
     private final int gameType;
     private int sideLength=1;
@@ -191,6 +191,10 @@ public class Board {
         } else {
             System.out.println("Pole (" + x + ", " + y + ") jest już zajęte lub nie jest dozwolone na tej planszy.");
         }
+    }
+
+    public void setPieces(List<Piece> pieces) {
+        this.pieces = pieces;
     }
 
 
@@ -447,6 +451,14 @@ public class Board {
         return sb.toString();
     }
 
+    public Integer getPlayerNum() {
+        return numberOfPlayers;
+    }
+
+    public String getVariant() {
+        return String.valueOf(gameType);
+    }
+
     public String getAllPiecesInfo() {
         if (pieces.isEmpty()) {
             return "";
@@ -456,7 +468,7 @@ public class Board {
         for (Piece piece : pieces) {
             sb.append(piece.getX()).append(",")
                     .append(piece.getY()).append(",")
-                    .append(piece.getPieceId().charAt(0)).append(",");
+                    .append(piece.getPieceId()).append(",");
         }
 
         // Usunięcie ostatniego przecinka

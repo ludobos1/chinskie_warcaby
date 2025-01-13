@@ -1,5 +1,6 @@
 package com.ludobos1;
 
+import com.ludobos1.message.ErrorMessage;
 import com.ludobos1.message.Message;
 import com.ludobos1.message.SessionsMessage;
 import com.ludobos1.message.UpdateMessage;
@@ -70,9 +71,14 @@ public class ClientHandler implements Runnable {
             case JOIN:
                 System.out.println("Klient dołączył do gry.");
                 int index = Integer.parseInt(message.getContent());
-                gameSessions.get(index).joinClient(this);
-                gameSessionMap.put(this, gameSessions.get(index));
-                sendBoardState(index);
+                if (gameSessions.get(index).board.getPlayerNum() > gameSessions.get(index).getPlayers().size()) {
+                  gameSessions.get(index).joinClient(this);
+                  gameSessionMap.put(this, gameSessions.get(index));
+                  sendBoardState(index);
+                } else {
+                  Message errorMessage = new ErrorMessage("0");
+                  sendMessage(errorMessage);
+                }
                 break;
             case CREATE:
                 System.out.println("Klient dodał sesje.");
@@ -109,7 +115,9 @@ public class ClientHandler implements Runnable {
     public void sendBoardState(int sessionIndex) {
       String pieces = gameSessions.get(sessionIndex).board.getAllPiecesInfo();
       String boardSize = gameSessions.get(sessionIndex).board.toString();
-      Message updateMessage = new UpdateMessage(pieces, boardSize);
+      String variant = gameSessions.get(sessionIndex).board.getVariant();
+      String playerNum = String.valueOf(gameSessions.get(sessionIndex).board.getPlayerNum());
+      Message updateMessage = new UpdateMessage(pieces, boardSize, variant, playerNum);
       this.sendMessage(updateMessage);
     }
 
