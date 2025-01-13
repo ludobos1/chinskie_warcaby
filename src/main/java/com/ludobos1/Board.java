@@ -26,12 +26,7 @@ public class Board {
 
 
     public List<int[]> generateStarBoard() {
-<<<<<<< HEAD
         if(gameType==1) sideLength=5; //np. jesli gameType bedzie 1 to normalna plansza, no tu jeszcze ogarniemy jakie plansze w ogóle chcemy
-=======
-        if(gameType==1)
-        sideLength=5; //np. jesli gameType bedzie 1 to normalna plansza, no tu jeszcze ogarniemy jakie plansze w ogóle chcemy
->>>>>>> 0008475 (A)
         int startX;
         int startY;
         int endX;
