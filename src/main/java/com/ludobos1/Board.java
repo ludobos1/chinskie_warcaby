@@ -18,7 +18,6 @@ public class Board {
     private final Map<Character, String> playerSectors = new HashMap<>(); // Mapowanie ID gracza do sektora
     private int gameType;
     private int sideLength;
-    private int gameType;
 
     public Board(int gameType) {
         this.gameType=gameType;
