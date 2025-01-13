@@ -13,16 +13,17 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.scene.paint.Color;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class Client extends Application {
@@ -31,13 +32,13 @@ public class Client extends Application {
   private boolean running;
   private ObjectOutputStream out;
   private ObjectInputStream in;
-  private Scanner scanner;
   private Socket socket;
   private boolean isInGameSession = false;
   private String[] sessions = new String[0];
   private BorderPane menuRoot = new BorderPane();
   private Stage primaryStage;
   private int[][] boardTiles;
+  private List<Piece> pieces = new ArrayList<>();
 
   @Override
   public void start(Stage primaryStage) {
@@ -75,7 +76,7 @@ public class Client extends Application {
       gp.setVgap(10);
       for (int[] boardTile : boardTiles) {
         Circle circle = new Circle(15);
-        circle.setFill(Color.RED);
+        circle.setFill(Color.GREY);
         circle.setStroke(Color.BLACK);
         gp.add(circle, boardTile[0], boardTile[1]);
       }
@@ -97,7 +98,6 @@ public class Client extends Application {
       out = new ObjectOutputStream(socket.getOutputStream());
       out.flush();
       in = new ObjectInputStream(socket.getInputStream());
-      scanner = new Scanner(System.in);
       running = true;
       System.out.println("Polaczono z serwerem");
   }
@@ -197,6 +197,15 @@ public class Client extends Application {
           }
           if (boardTiles != null) {
             game();
+          }
+        }
+        String[] piecesInfo = updateSplit[0].split(",");
+        for (int i = 0; i < piecesInfo.length/3; i++) {
+          try {
+            Piece piece = new Piece(piecesInfo[3 * i + 2], Integer.parseInt(piecesInfo[3 * i]), Integer.parseInt(piecesInfo[3 * i + 1]));
+            pieces.add(piece);
+          } catch (NumberFormatException e) {
+            System.out.println(e.getMessage());
           }
         }
       default:

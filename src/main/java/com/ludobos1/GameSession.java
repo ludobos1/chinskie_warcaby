@@ -8,10 +8,12 @@ public class GameSession {
   public Board board;
   private final ArrayList<ClientHandler> clients = new ArrayList<>();
   private String name;
+  private int playerNum;
 
-  public GameSession(Board board, String name) {
+  public GameSession(Board board, String name, int playerNum) {
     this.board = board;
     this.name = name;
+    this.playerNum = playerNum;
   }
 
   public void joinClient(ClientHandler client) {
