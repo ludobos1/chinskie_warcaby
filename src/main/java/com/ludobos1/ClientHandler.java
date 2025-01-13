@@ -82,7 +82,7 @@ public class ClientHandler implements Runnable {
             // jakie dane sa w parseint split 0 split 1?? //
                 Board board = new Board(Integer.parseInt(split[1]),numberOfPlayers);
                 board.generateStarBoard();
-                GameSession gameSession = new GameSession(board, split[2]);
+                GameSession gameSession = new GameSession(board, split[2],Integer.parseInt(split[0]));
                 gameSession.joinClient(this);
                 gameSessions.add(gameSession);
                 gameSessionMap.put(this, gameSession);
