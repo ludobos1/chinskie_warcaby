@@ -13,7 +13,7 @@ public class AppTest {
 
     @BeforeEach
     public void setUp() {
-        board = new Board(1);  // Przykładowy typ gry
+        board = new Board(1,6);  // Przykładowy typ gry
         board.generateStarBoard(); // Generowanie planszy dla testów
     }
 
@@ -26,27 +26,27 @@ public class AppTest {
 
     @Test
     public void testAddPiece() {
-        board.addPiece("A1", 1, 1);
+        board.addPiece("A1", 12, 16);
         assertEquals(1, board.getPieces().size(), "Powinien zostać dodany jeden pionek.");
     }
 
     @Test
     public void testMovePiece() {
-        board.addPiece("A1", 1, 1);
-        boolean moved = board.movePiece("A1", 2, 2);
+        board.addPiece("A1", 9, 10);
+        boolean moved = board.movePiece("A1",10, 12);
 
-        assertTrue(moved, "Ruch pionka A1 na (2, 2) powinien być udany.");
+        assertTrue(moved, "Ruch pionka A1 na (10, 12) powinien być udany.");
         Piece piece = board.getPieces().get(0);
-        assertEquals(2, piece.getX(), "Pozycja X pionka A1 powinna wynosić 2.");
-        assertEquals(2, piece.getY(), "Pozycja Y pionka A1 powinna wynosić 2.");
+        assertEquals(10, piece.getX(), "Pozycja X pionka A1 powinna wynosić 10.");
+        assertEquals(12, piece.getY(), "Pozycja Y pionka A1 powinna wynosić 12.");
     }
 
     @Test
     public void testMovePieceToOccupiedField() {
-        board.addPiece("A1", 1, 1);
-        board.addPiece("B1", 2, 2);
+        board.addPiece("A1", 9, 10);
+        board.addPiece("B1", 10, 12);
 
-        boolean result = board.movePiece("A1", 2, 2);
+        boolean result = board.movePiece("A1", 10, 12);
 
         assertFalse(result, "Ruch na zajęte pole powinien być nieudany.");
     }
@@ -54,11 +54,11 @@ public class AppTest {
     @Test
 public void testMoveByJumping() {
     // Ustawienie pionków na planszy
-    board.addPiece("A1", 1, 1); // Pionek, który ma wykonać skok
-    board.addPiece("B1", 2, 2); // Pionek, przez który A1 ma skoczyć
+    board.addPiece("A1", 9, 10); // Pionek, który ma wykonać skok
+    board.addPiece("B1", 10, 12); // Pionek, przez który A1 ma skoczyć
 
     // Próba wykonania skoku
-    boolean result = board.movePiece("A1", 3, 3);
+    boolean result = board.movePiece("A1", 11, 14);
 
     // Sprawdzanie wyniku skoku
     assertTrue(result, "Ruch przez skok powinien być dozwolony.");
@@ -70,17 +70,17 @@ public void testMoveByJumping() {
         .orElse(null);
 
     assertNotNull(movedPiece, "Pionek A1 powinien istnieć.");
-    assertEquals(3, movedPiece.getX(), "Pionek A1 powinien znajdować się na pozycji X=3.");
-    assertEquals(3, movedPiece.getY(), "Pionek A1 powinien znajdować się na pozycji Y=3.");
+    assertEquals(11, movedPiece.getX(), "Pionek A1 powinien znajdować się na pozycji X=11.");
+    assertEquals(14, movedPiece.getY(), "Pionek A1 powinien znajdować się na pozycji Y=14.");
 }
     
     public void testMoveByMultipleJumping() {
         // Ustawienie pionków na planszy
-        board.addPiece("A1", 1, 1);
-        board.addPiece("B1", 2, 2);
-        board.addPiece("B2",4,4);
+        board.addPiece("A1", 9, 10);
+        board.addPiece("B1", 10, 12);
+        board.addPiece("B2",12,16);
 
-        boolean result = board.movePiece("A1", 5, 5);
+        boolean result = board.movePiece("A1", 13, 18);
 
         assertTrue(result, "Ruch przez skok powinien być dozwolony.");
     
@@ -90,19 +90,18 @@ public void testMoveByJumping() {
             .orElse(null);
 
         assertNotNull(movedPiece, "Pionek A1 powinien istnieć.");
-        assertEquals(5, movedPiece.getX(), "Pionek A1 powinien znajdować się na pozycji X=3.");
-        assertEquals(5, movedPiece.getY(), "Pionek A1 powinien znajdować się na pozycji Y=3.");
+        assertEquals(13, movedPiece.getX(), "Pionek A1 powinien znajdować się na pozycji X=13.");
+        assertEquals(18, movedPiece.getY(), "Pionek A1 powinien znajdować się na pozycji Y=18.");
     }
 
     @Test
     public void testIllegalMove() {
-        board.addPiece("A1", 0, 0);
-        boolean result = board.isLegal("A1", 10, 10);
+        board.addPiece("A1", 9, 10);
+        boolean result = board.isLegal("A1", 18, 24);
 
         assertFalse(result, "Ruch poza dozwolonym obszarem gry powinien być nielegalny.");
     }
 
-    @Test
 
     @Test
     public void testInitializePlayerPieces() {

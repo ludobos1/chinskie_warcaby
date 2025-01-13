@@ -17,10 +17,12 @@ public class Board {
     private List<Piece> pieces = new ArrayList<>();
     private final Map<Character, String> playerSectors = new HashMap<>(); // Mapowanie ID gracza do sektora
     private final int gameType;
-    private int sideLength;
+    private int sideLength=1;
+    private int numberOfPlayers;
 
-    public Board(int gameType) {
+    public Board(int gameType, int numberOfPlayers) {
         this.gameType=gameType;
+        this.numberOfPlayers=numberOfPlayers;
     }
 
 
@@ -32,24 +34,27 @@ public class Board {
         int endX;
 
         // Górna i środkowa część sześciokąta
-        int rowWidth = sideLength*2;
-        startX = sideLength*2;
-        for (int y = sideLength*2; y < sideLength * 4; y=y+2) {
-            for (int x = startX; x < startX + rowWidth; x=x+2) {
-                allowedPositions.add(new int[]{x, y});
-            }
-            startX=startX-1;
-            rowWidth=rowWidth+1;
-        }
-
-        // Dolna część sześciokąta
-        
-        for (int y = sideLength * 3 - 2*2; y > sideLength * 2 - 2; y=y-2) {
-            for (int x = startX; x < startX + rowWidth; x=x+2) {
+        startX = (sideLength-1)*2;
+        startY=(sideLength-1)*2;
+        endX=startX + sideLength*2-2;
+        for (int y = startY; y <= startY+sideLength*2; y=y+2) {
+            for (int x = startX; x <= endX; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
             }
             startX--;
-            rowWidth++;
+            endX++;
+        }
+
+        // Dolna część sześciokąta
+        startX = (sideLength-1)*2;
+        startY=(sideLength-1)*4+sideLength*2-2;
+        endX=(sideLength-1)*2+sideLength*2-2;
+        for (int y = startY; y > startY-sideLength*2+2; y=y-2) {
+            for (int x = startX; x <= endX; x=x+2) {
+                allowedPositions.add(new int[]{x, y});
+            }
+            startX--;
+            endX++;
         }
 
         // Górny róg
@@ -92,10 +97,10 @@ public class Board {
         }
 
         // Prawy górny róg
-        startX=(sideLength-1)*2+sideLength*2 ;
+        startX=(sideLength-1)*2+sideLength*2;
         startY=(sideLength-1)*2;
         endX=startX+(sideLength-1)*2-2;
-        for (int y = startY; y < startY+(sideLength-1)*2; y++) {
+        for (int y = startY; y < startY+(sideLength-1)*2; y=y+2) {
             for (int x = startX; x <= endX; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
                 p2.add(new int[]{x, y});
@@ -119,17 +124,42 @@ public class Board {
 
         // Prawy dolny róg
         startX=(sideLength-1)*2+sideLength*2 ;
-        startY=(sideLength-1)*3;
-        endX=startX+(sideLength-1)*2;
+        startY=(sideLength-1)*6;
+        endX=startX+(sideLength-1)*2-2;
         for (int y = startY; y >startY-(sideLength-1)*2; y=y-2) {
-            for (int x = startX; x < endX; x=x+2) {
+            for (int x = startX; x <= endX; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
                 p2.add(new int[]{x, y});
             }
-            endX=endX-1;
+            endX--;
+            startX++;
         }
 
         return allowedPositions;
+    }
+    
+    public void initializeAllPlayersPieces(int numberOfPlayers) {
+        if (numberOfPlayers == 2) {
+            // Dla 2 graczy: p1 (A), p4 (D)
+            initializePlayerPieces('A');
+            initializePlayerPieces('D');
+        } else if (numberOfPlayers == 4) {
+            // Dla 4 graczy: p1 (A), p2 (B), p4 (D), p5 (E)
+            initializePlayerPieces('A');
+            initializePlayerPieces('B');
+            initializePlayerPieces('D');
+            initializePlayerPieces('E');
+        } else if (numberOfPlayers == 6) {
+            // Dla 6 graczy: wszystkie sektory
+            initializePlayerPieces('A');
+            initializePlayerPieces('B');
+            initializePlayerPieces('C');
+            initializePlayerPieces('D');
+            initializePlayerPieces('E');
+            initializePlayerPieces('F');
+        } else {
+            System.out.println("Nieprawidłowa liczba graczy. Obsługiwane są tylko wartości 2, 4 lub 6.");
+        }
     }
     
 
@@ -298,7 +328,6 @@ public class Board {
     
         // Jeśli pionek jest w przeciwnym sektorze, sprawdzamy, czy nie wychodzi z niego
         if (isPieceInOppositeSector(pieceId)) {
-            // Sprawdzamy, czy ruch nie wychodzi z sektora przeciwnika
             List<int[]> oppositeSector = getOppositeSector(playerId);
             boolean isInSector = false;
             for (int[] position : oppositeSector) {
@@ -313,9 +342,29 @@ public class Board {
             }
         }
     
+        // Sprawdzanie ruchu na sąsiednie pole
+        if (isAdjacent(oldX, oldY, newX, newY)) {
+            return true; // Ruch na sąsiednie pole jest legalny
+        }
+    
         // Sprawdzenie, czy ruch jest legalny na podstawie zasady skakania
         return canReachByHopping(oldX, oldY, newX, newY, new boolean[allowedPositions.size()]);
     }
+    
+    // Nowa metoda sprawdzająca, czy pole docelowe jest sąsiednie
+    private boolean isAdjacent(int oldX, int oldY, int newX, int newY) {
+        int[][] directions = {
+            {2, 0}, {-2, 0}, {-1, -2}, {1, -2}, {-1, 2}, {1, 2}
+        };
+    
+        for (int[] dir : directions) {
+            if (oldX + dir[0] == newX && oldY + dir[1] == newY) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     
 
     private boolean canReachByHopping(int currentX, int currentY, int targetX, int targetY, boolean[] visited) {
@@ -331,7 +380,7 @@ public class Board {
 
         // Możliwe kierunki skoku
         int[][] directions = {
-            {2, 0}, {-2, 0}, {0, 2}, {0, -2}, {2, 2}, {-2, -2}, {2, -2}, {-2, 2}
+            {2, -4}, {4, 0}, {2, 4}, {-2, 4}, {-4, 0}, {-2, -4}
         };
 
         for (int[] dir : directions) {
