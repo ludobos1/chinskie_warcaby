@@ -175,10 +175,6 @@ public class Client extends Application {
   }
   private void handleMessage(Message message){
     switch (message.getType()) {
-      case MOVE:
-        System.out.println("Recieved move");
-        // Dodać handler dla move
-        break;
       case SESSIONS:
         sessions = message.getContent().split(",");
         if(!isInGameSession) {
@@ -203,6 +199,8 @@ public class Client extends Application {
             game();
           }
         }
+      default:
+        System.out.println("Unrecognized message type");
     }
   }
   private void sendMessage(Message message) {

@@ -17,6 +17,7 @@ public class Board {
     private final List<int[]> allowedPositions;
     private List<Piece> pieces = new ArrayList<>();
     private final Map<Character, String> playerSectors = new HashMap<>(); // Mapowanie ID gracza do sektora
+    private int gameType;
     private int sideLength;
 
     public Board(int gameType) {
@@ -27,9 +28,9 @@ public class Board {
 
 
     public List<int[]> generateStarBoard(int gameType) {
-        if(gameType==1)
-        sideLength=5; //np. jesli gameType bedzie 1 to normalna plansza, no tu jeszcze ogarniemy jakie plansze w ogóle chcemy
-
+        if(gameType==1) {
+            sideLength = 5; //np. jesli gameType bedzie 1 to normalna plansza, no tu jeszcze ogarniemy jakie plansze w ogóle chcemy
+        }
         // Górna i środkowa część sześciokąta
         int rowWidth = sideLength;
         int startX = sideLength;
@@ -308,26 +309,6 @@ public class Board {
             sb.setLength(sb.length() - 1);
         }
 
-        return sb.toString();
-    }
-
-    public String getAllPiecesInfo() {
-        if (pieces.isEmpty()) {
-            return "";
-        }
-    
-        StringBuilder sb = new StringBuilder();
-        for (Piece piece : pieces) {
-            sb.append(piece.getX()).append(",")
-              .append(piece.getY()).append(",")
-              .append(piece.getPieceId().charAt(0)).append(","); 
-        }
-    
-        // Usunięcie ostatniego przecinka
-        if (sb.length() > 0) {
-            sb.setLength(sb.length() - 1);
-        }
-    
         return sb.toString();
     }
 }
