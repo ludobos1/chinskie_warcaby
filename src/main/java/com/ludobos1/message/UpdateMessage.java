@@ -6,17 +6,22 @@ public class UpdateMessage implements Message{
   String boardSize;
   String variant;
   String playersNum;
+  String activePlayer;
+  String yourId;
 
-  public UpdateMessage(String positions){
+  public UpdateMessage(String positions, char activePlayer){
     type = TypeEnum.UPDATE;
     this.positions = positions;
+    this.activePlayer = String.valueOf(activePlayer);
   }
-  public UpdateMessage(String positions, String boardSize, String variant, String playersNum){
+  public UpdateMessage(String positions, String boardSize, String variant, String playersNum, char activePlayer, String yourId){
     type = TypeEnum.UPDATE;
     this.positions = positions;
     this.boardSize = boardSize;
     this.variant = variant;
     this.playersNum = playersNum;
+    this.activePlayer = String.valueOf(activePlayer);
+    this.yourId = yourId;
   }
   @Override
   public TypeEnum getType() {
@@ -25,9 +30,9 @@ public class UpdateMessage implements Message{
   @Override
   public String getContent() {
     if (boardSize!=null){
-      return positions + "/" + boardSize + "/" + variant + "/" + playersNum;
+      return activePlayer + "/" + positions + "/" + boardSize + "/" + variant + "/" + playersNum + "/" + yourId;
     } else {
-      return positions;
+      return activePlayer + "/" + positions;
     }
   }
 }

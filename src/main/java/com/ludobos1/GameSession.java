@@ -7,13 +7,11 @@ import java.util.ArrayList;
 public class GameSession {
   public Board board;
   private final ArrayList<ClientHandler> clients = new ArrayList<>();
-  private String name;
-  private int playerNum;
+  private final String name;
 
-  public GameSession(Board board, String name, int playerNum) {
+  public GameSession(Board board, String name) {
     this.board = board;
     this.name = name;
-    this.playerNum = playerNum;
   }
 
   public void joinClient(ClientHandler client) {

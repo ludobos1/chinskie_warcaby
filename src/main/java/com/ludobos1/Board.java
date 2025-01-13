@@ -1,8 +1,5 @@
 package com.ludobos1;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 
 
 public class Board {
@@ -18,6 +15,8 @@ public class Board {
     private final int gameType;
     private int sideLength=1;
     private final int numberOfPlayers;
+    private int activePlayer;
+    private char[] playerIds;
 
     public Board(int gameType, int numberOfPlayers) {
         this.gameType=gameType;
@@ -27,6 +26,8 @@ public class Board {
     public void initializeGame() {
         starBoard = generateStarBoard();
         initializeAllPlayersPieces(numberOfPlayers);
+        Random random = new Random();
+        activePlayer = random.nextInt(numberOfPlayers);
     }
 
     public List<int[]> generateStarBoard() {
@@ -145,16 +146,19 @@ public class Board {
         if (numberOfPlayers == 2) {
             initializePlayerPieces('A');
             initializePlayerPieces('D');
+            playerIds = new char[] {'A','D'};
         } else if(numberOfPlayers==3){
             initializePlayerPieces('A');
             initializePlayerPieces('B');
             initializePlayerPieces('C');
+            playerIds = new char[] {'A','B','C'};
         }
             else if (numberOfPlayers == 4) {
             initializePlayerPieces('A');
             initializePlayerPieces('B');
             initializePlayerPieces('D');
             initializePlayerPieces('E');
+            playerIds = new char[] {'A','B','D','E'};
         } else if (numberOfPlayers == 6) {
             initializePlayerPieces('A');
             initializePlayerPieces('B');
@@ -162,6 +166,7 @@ public class Board {
             initializePlayerPieces('D');
             initializePlayerPieces('E');
             initializePlayerPieces('F');
+            playerIds = new char[] {'A','B','C','D','E','F'};
         } else {
             System.out.println("Nieprawidłowa liczba graczy. Obsługiwane są tylko wartości 2, 4 lub 6.");
         }
@@ -203,7 +208,8 @@ public class Board {
         for (Piece piece : pieces) {
             if (piece.getPieceId().equals(pieceId)) {
                 if (isLegal(pieceId, newX, newY,1)) {
-                    piece.setPosition(newX, newY);  
+                    piece.setPosition(newX, newY);
+                    activePlayer=activePlayer+1%numberOfPlayers;
                     return true;
                 } else {
                     return false;
@@ -465,8 +471,10 @@ public class Board {
     public List<Piece> getPieces() {
         return new ArrayList<>(pieces); 
     }
-    
-    
+
+    public char getActivePlayer() {
+        return playerIds[activePlayer];
+    }
 
     @Override
     public String toString() {
@@ -484,6 +492,10 @@ public class Board {
 
     public String getVariant() {
         return String.valueOf(gameType);
+    }
+
+    public String getPlayerId(int playerNum) {
+        return String.valueOf(playerIds[playerNum]);
     }
 
     public String getAllPiecesInfo() {

@@ -37,6 +37,8 @@ public class Client extends Application {
   private List<Piece> pieces = new ArrayList<>();
   private Board board;
   private Map<Integer, Circle> fields = new HashMap<>();
+  private String myId;
+  private String activePlayer;
 
   @Override
   public void start(Stage primaryStage) {
@@ -186,16 +188,17 @@ public class Client extends Application {
       case UPDATE:
         System.out.println("Recieved update");
         String[] updateSplit = message.getContent().split("/");
-        if (updateSplit.length > 1) {
-          String[] tiles = updateSplit[1].split(",");
+        if (updateSplit.length > 2) {
+          String[] tiles = updateSplit[2].split(",");
           boardTiles = new int[tiles.length/2][2];
           try {
           for (int i = 0; i < tiles.length/2; i++) {
               boardTiles[i][0] = Integer.parseInt(tiles[2 * i]);
               boardTiles[i][1] = Integer.parseInt(tiles[2 * i + 1]);
           }
-          board = new BoardBuilder().setVariant(Integer.parseInt(updateSplit[2])).setPlayerNum(Integer.parseInt(updateSplit[3])).build();
+          board = new BoardBuilder().setVariant(Integer.parseInt(updateSplit[3])).setPlayerNum(Integer.parseInt(updateSplit[4])).build();
           board.initializeGame();
+          myId = updateSplit[5];
           } catch (NumberFormatException e) {
             System.out.println(e.getMessage());
           }
@@ -203,7 +206,11 @@ public class Client extends Application {
             game();
           }
         }
-        String[] piecesInfo = updateSplit[0].split(",");
+        activePlayer = updateSplit[0];
+        String[] piecesInfo = updateSplit[1].split(",");
+        for (Circle circle : fields.values()) {
+          circle.setFill(Color.GREY);
+        }
         for (int i = 0; i < piecesInfo.length/3; i++) {
           try {
             int x = Integer.parseInt(piecesInfo[3 * i]);

@@ -63,7 +63,8 @@ public class ClientHandler implements Runnable {
               GameSession session = gameSessionMap.get(this);
               if (session != null) {
                 String pieces = session.board.getAllPiecesInfo();
-                session.broadcastMessage(new UpdateMessage(pieces));
+                char activePlayer = session.board.getActivePlayer();
+                session.broadcastMessage(new UpdateMessage(pieces, activePlayer));
               } else {
                 System.out.println("Klient nie należy do żadnej sesji!");
               }
@@ -74,7 +75,8 @@ public class ClientHandler implements Runnable {
                 if (gameSessions.get(index).board.getPlayerNum() > gameSessions.get(index).getPlayers().size()) {
                   gameSessions.get(index).joinClient(this);
                   gameSessionMap.put(this, gameSessions.get(index));
-                  sendBoardState(index);
+                  String yourId = gameSessions.get(index).board.getPlayerId(gameSessions.get(index).getPlayers().size());
+                  sendBoardState(index, yourId);
                 } else {
                   Message errorMessage = new ErrorMessage("0");
                   sendMessage(errorMessage);
@@ -87,12 +89,13 @@ public class ClientHandler implements Runnable {
             // jakie dane sa w parseint split 0 split 1?? //
                 Board board = new BoardBuilder().setVariant(Integer.parseInt(split[1])).setPlayerNum(Integer.parseInt(split[0])).build();
                 board.initializeGame();
-                GameSession gameSession = new GameSession(board, split[2],Integer.parseInt(split[0]));
+                String yourId = board.getPlayerId(0);
+                GameSession gameSession = new GameSession(board, split[2]);
                 gameSession.joinClient(this);
                 gameSessions.add(gameSession);
                 gameSessionMap.put(this, gameSession);
                 sessions.add(gameSession.getName());
-                sendBoardState(gameSessions.indexOf(gameSession));
+                sendBoardState(gameSessions.indexOf(gameSession), yourId);
                 Message sessionsMessage = new SessionsMessage(sessions);
                 for (ClientHandler client : clients) {
                   client.sendMessage(sessionsMessage);
@@ -112,12 +115,13 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void sendBoardState(int sessionIndex) {
+    public void sendBoardState(int sessionIndex, String yourId) {
       String pieces = gameSessions.get(sessionIndex).board.getAllPiecesInfo();
       String boardSize = gameSessions.get(sessionIndex).board.toString();
       String variant = gameSessions.get(sessionIndex).board.getVariant();
       String playerNum = String.valueOf(gameSessions.get(sessionIndex).board.getPlayerNum());
-      Message updateMessage = new UpdateMessage(pieces, boardSize, variant, playerNum);
+      char startingPlayer = gameSessions.get(sessionIndex).board.getActivePlayer();
+      Message updateMessage = new UpdateMessage(pieces, boardSize, variant, playerNum, startingPlayer, yourId);
       this.sendMessage(updateMessage);
     }
 
