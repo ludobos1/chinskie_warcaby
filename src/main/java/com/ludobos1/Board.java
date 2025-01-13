@@ -13,7 +13,7 @@ public class Board {
     private final List<int[]> p4 = new ArrayList<>();
     private final List<int[]> p5 = new ArrayList<>();
     private final List<int[]> p6 = new ArrayList<>();
-    private final List<int[]> allowedPositions;
+    private final List<int[]> allowedPositions= new ArrayList<>();
     private List<Piece> pieces = new ArrayList<>();
     private final Map<Character, String> playerSectors = new HashMap<>(); // Mapowanie ID gracza do sektora
     private int gameType;
@@ -21,31 +21,31 @@ public class Board {
 
     public Board(int gameType) {
         this.gameType=gameType;
-        allowedPositions = new ArrayList<>();
     }
 
 
 
     public List<int[]> generateStarBoard(int gameType) {
-        if(gameType==1) {
-            sideLength = 5; //np. jesli gameType bedzie 1 to normalna plansza, no tu jeszcze ogarniemy jakie plansze w ogóle chcemy
-        }
+        if(gameType==1) sideLength=5; //np. jesli gameType bedzie 1 to normalna plansza, no tu jeszcze ogarniemy jakie plansze w ogóle chcemy
+        int startX;
+        int startY;
+        int endX;
+
         // Górna i środkowa część sześciokąta
-        int rowWidth = sideLength;
-        int startX = sideLength;
-        for (int y = sideLength; y < sideLength * 2; y++) {
-            for (int x = startX; x < startX + rowWidth; x++) {
+        int rowWidth = sideLength*2;
+        startX = sideLength*2;
+        for (int y = sideLength*2; y < sideLength * 4; y=y+2) {
+            for (int x = startX; x < startX + rowWidth; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
             }
-            startX--;
-            rowWidth++;
+            startX=startX-1;
+            rowWidth=rowWidth+1;
         }
 
         // Dolna część sześciokąta
-        rowWidth = sideLength;
-        startX = sideLength;
-        for (int y = sideLength * 3 - 2; y > sideLength * 2 - 1; y--) {
-            for (int x = startX; x < startX + rowWidth; x++) {
+        
+        for (int y = sideLength * 3 - 2*2; y > sideLength * 2 - 2; y=y-2) {
+            for (int x = startX; x < startX + rowWidth; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
             }
             startX--;
@@ -53,51 +53,77 @@ public class Board {
         }
 
         // Górny róg
-        for (int y = 1; y < sideLength; y++) {
-            for (int x = 1; x <= y; x++) {
+        startX=sideLength*2+sideLength/2;
+        startY=0;
+        endX=sideLength*2+sideLength/2+1;
+        for (int y = startY; y < sideLength+sideLength/2; y=y+2) {
+            for (int x = startX; x<endX ; x=x+2){
                 allowedPositions.add(new int[]{x, y});
                 p1.add(new int[]{x, y});
             }
+            endX=endX+1;
+            startX--;
         }
 
         // Dolny róg
-        for (int y = (sideLength - 1) * 4 + 1; y > (sideLength - 1) * 3 + 1; y--) {
-            for (int x = 1; x <= (sideLength - 1) * 4 + 2 - y; x++) {
+        startX=sideLength*2+sideLength/2;
+        startY=((sideLength-1)*3+sideLength-1)*2;
+        endX=sideLength*2+sideLength/2+1;
+        for (int y = startY ; y >startY-(sideLength-1)*2 ; y=y-2) {
+            for (int x = startX; x < endX; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
                 p4.add(new int[]{x, y});
             }
+            endX=endX+1;
+            startX--;
         }
 
         // Lewy górny róg
-        for (int y = sideLength; y < sideLength * 2 - 1; y++) {
-            for (int x = 1; x < sideLength * 2 - 1 - y; x++) {
+        startX=0 ;
+        startY=sideLength+sideLength/2+1;
+        endX=(sideLength-1)*2;
+        for (int y = startY; y <=(sideLength+sideLength/2)*2; y=y+2) {
+            for (int x = startX; x < endX; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
                 p6.add(new int[]{x, y});
             }
+            endX=endX-1;
         }
 
         // Prawy górny róg
-        for (int y = sideLength; y < sideLength * 2 - 1; y++) {
-            for (int x = sideLength * 2; x < sideLength * 4 - 2 - y; x++) {
+        startX=(sideLength-1)*2+sideLength*2 ;
+        startY=(sideLength-1)*2;
+        endX=startX+(sideLength-1)*2;
+        for (int y = startY; y < startY+(sideLength-1)*2; y++) {
+            for (int x = startX; x < endX; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
                 p2.add(new int[]{x, y});
             }
+            endX=endX-1;
         }
 
         // Lewy dolny róg
-        for (int y = sideLength * 2; y < sideLength * 3 - 1; y++) {
-            for (int x = 1; x <= y + 1 - sideLength * 2; x++) {
+        startX=0 ;
+        startY=(sideLength-1)*3;
+        endX=(sideLength-1)*2;
+        for (int y = startY; y >startY-(sideLength-1)*2; y=y-2) {
+            for (int x = startX; x < endX; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
                 p5.add(new int[]{x, y});
             }
+            endX=endX-1;
         }
 
         // Prawy dolny róg
-        for (int y = sideLength * 2; y < sideLength * 3 - 1; y++) {
-            for (int x = sideLength * 2; x < y + 1; x++) {
+        startX=(sideLength-1)*2+sideLength*2 ;
+        startY=(sideLength-1)*3;
+        endX=startX+(sideLength-1)*2;
+        for (int y = startY; y >startY-(sideLength-1)*2; y=y-2) {
+            for (int x = startX; x < endX; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
-                p3.add(new int[]{x, y});
+                p2.add(new int[]{x, y});
             }
+            endX=endX-1;
         }
 
         return allowedPositions;
