@@ -13,21 +13,25 @@ public class Board {
     private final List<int[]> p4 = new ArrayList<>();
     private final List<int[]> p5 = new ArrayList<>();
     private final List<int[]> p6 = new ArrayList<>();
-    private final List<int[]> allowedPositions= new ArrayList<>();
-    private List<Piece> pieces = new ArrayList<>();
+    public List<int[]> starBoard = new ArrayList<>();
+    private final List<Piece> pieces = new ArrayList<>();
     private final Map<Character, String> playerSectors = new HashMap<>(); // Mapowanie ID gracza do sektora
     private final int gameType;
     private int sideLength=1;
-    private int numberOfPlayers;
+    private final int numberOfPlayers;
 
     public Board(int gameType, int numberOfPlayers) {
         this.gameType=gameType;
         this.numberOfPlayers=numberOfPlayers;
     }
 
-
+    public void initializeGame() {
+        starBoard = generateStarBoard();
+        initializeAllPlayersPieces(numberOfPlayers);
+    }
 
     public List<int[]> generateStarBoard() {
+        List<int[]> allowedPositions = new ArrayList<>();
         if(gameType==1) sideLength=5; //np. jesli gameType bedzie 1 to normalna plansza, no tu jeszcze ogarniemy jakie plansze w ogóle chcemy
         int startX;
         int startY;
@@ -348,7 +352,7 @@ public class Board {
         }
     
         // Sprawdzenie, czy ruch jest legalny na podstawie zasady skakania
-        return canReachByHopping(oldX, oldY, newX, newY, new boolean[allowedPositions.size()]);
+        return canReachByHopping(oldX, oldY, newX, newY, new boolean[starBoard.size()]);
     }
     
     // Nowa metoda sprawdzająca, czy pole docelowe jest sąsiednie
@@ -402,7 +406,7 @@ public class Board {
 
 
     private boolean isWithinBoard(int x, int y) {
-        for (int[] position : allowedPositions) {
+        for (int[] position : starBoard) {
             if (position[0] == x && position[1] == y) {
                 return true;
             }
@@ -412,8 +416,8 @@ public class Board {
 
 
     private int getIndex(int x, int y) {
-        for (int i = 0; i < allowedPositions.size(); i++) {
-            int[] position = allowedPositions.get(i);
+        for (int i = 0; i < starBoard.size(); i++) {
+            int[] position = starBoard.get(i);
             if (position[0] == x && position[1] == y) {
                 return i; // Zwraca indeks, jeśli pozycja pasuje
             }
@@ -424,7 +428,7 @@ public class Board {
     
 
     public List<int[]> getAllowedPositions() {
-        return allowedPositions;
+        return starBoard;
     }
 
     public List<Piece> getPieces() {
@@ -436,7 +440,7 @@ public class Board {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (int[] pos : allowedPositions) {
+        for (int[] pos : starBoard) {
             sb.append(pos[0]).append(",").append(pos[1]).append(",");
         }
         sb.setLength(sb.length() - 1);

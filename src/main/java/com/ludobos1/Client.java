@@ -72,13 +72,13 @@ public class Client extends Application {
   public void game() {
     Platform.runLater(() -> {
       GridPane gp = new GridPane();
-      gp.setHgap(10);
-      gp.setVgap(10);
+      gp.setHgap(7);
+      gp.setVgap(7);
       for (int[] boardTile : boardTiles) {
         Circle circle = new Circle(15);
         circle.setFill(Color.GREY);
         circle.setStroke(Color.BLACK);
-        gp.add(circle, boardTile[0], boardTile[1]);
+        gp.add(circle, boardTile[0], boardTile[1]*2);
       }
       Scene gameScene = new Scene(gp, 1000, 1000);
 
@@ -208,8 +208,9 @@ public class Client extends Application {
             System.out.println(e.getMessage());
           }
         }
+        break;
       default:
-        System.out.println("Unrecognized message type");
+        System.out.println("Unrecognized message type: "+message.getType().name());
     }
   }
   private void sendMessage(Message message) {

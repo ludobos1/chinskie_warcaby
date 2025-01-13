@@ -13,8 +13,8 @@ public class AppTest {
 
     @BeforeEach
     public void setUp() {
-        board = new Board(1,6);  // Przykładowy typ gry
-        board.generateStarBoard(); // Generowanie planszy dla testów
+        board = new BoardBuilder().setVariant(1).setPlayerNum(6).build();  // Przykładowy typ gry
+        board.starBoard = board.generateStarBoard(); // Generowanie planszy dla testów
     }
 
     @Test
