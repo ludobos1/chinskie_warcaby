@@ -26,7 +26,12 @@ public class Board {
 
 
     public List<int[]> generateStarBoard() {
+<<<<<<< HEAD
         if(gameType==1) sideLength=5; //np. jesli gameType bedzie 1 to normalna plansza, no tu jeszcze ogarniemy jakie plansze w ogóle chcemy
+=======
+        if(gameType==1)
+        sideLength=5; //np. jesli gameType bedzie 1 to normalna plansza, no tu jeszcze ogarniemy jakie plansze w ogóle chcemy
+>>>>>>> 0008475 (A)
         int startX;
         int startY;
         int endX;
@@ -81,37 +86,40 @@ public class Board {
         // Lewy górny róg
         startX=0 ;
         startY=sideLength+sideLength/2+1;
-        endX=(sideLength-1)*2;
+        endX=(sideLength-1)*2-2;
         for (int y = startY; y <=(sideLength+sideLength/2)*2; y=y+2) {
-            for (int x = startX; x < endX; x=x+2) {
+            for (int x = startX; x <= endX; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
                 p6.add(new int[]{x, y});
             }
-            endX=endX-1;
+            endX--;
+            startX++;
         }
 
         // Prawy górny róg
         startX=(sideLength-1)*2+sideLength*2 ;
         startY=(sideLength-1)*2;
-        endX=startX+(sideLength-1)*2;
+        endX=startX+(sideLength-1)*2-2;
         for (int y = startY; y < startY+(sideLength-1)*2; y++) {
-            for (int x = startX; x < endX; x=x+2) {
+            for (int x = startX; x <= endX; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
                 p2.add(new int[]{x, y});
             }
-            endX=endX-1;
+            endX--;
+            startX++;
         }
 
         // Lewy dolny róg
         startX=0 ;
-        startY=(sideLength-1)*3;
-        endX=(sideLength-1)*2;
+        startY=(sideLength-1)*6;
+        endX=(sideLength-1)*2-2;
         for (int y = startY; y >startY-(sideLength-1)*2; y=y-2) {
-            for (int x = startX; x < endX; x=x+2) {
+            for (int x = startX; x <= endX; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
                 p5.add(new int[]{x, y});
             }
-            endX=endX-1;
+            endX--;
+            startX++;
         }
 
         // Prawy dolny róg
