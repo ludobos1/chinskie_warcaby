@@ -2,6 +2,8 @@ package com.ludobos1;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.beans.Transient;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -97,7 +99,7 @@ public void testMoveByJumping() {
     @Test
     public void testIllegalMove() {
         board.addPiece("A1", 9, 10);
-        boolean result = board.isLegal("A1", 18, 24);
+        boolean result = board.isLegal("A1", 18, 24,1);
 
         assertFalse(result, "Ruch poza dozwolonym obszarem gry powinien być nielegalny.");
     }
@@ -141,6 +143,33 @@ public void testMoveByJumping() {
         board.addPiece("A1", position[0], position[1]);
 
         assertTrue(board.isPieceInOppositeSector("A1"), "Pionek A1 powinien być w przeciwnym sektorze.");
+    }
+
+    @Test
+    public void testFastJumping(){
+        board.addPiece("A1",8,24);
+        board.addPiece("B1", 12,24);
+      assertTrue(board.isLegal("A1",16,24,2), "Taki skok powinien być możliwy");
+    }
+
+    @Test
+    public void testFastDiagonalJumpig(){
+        board.addPiece("A1",8,24);
+        board.addPiece("B1", 10,20);
+      assertTrue(board.isLegal("A1",12,16,2), "Taki skok powinien być możliwy");
+    }
+    
+
+    @Test
+    public void testCountFreeSpacesInLine(){
+        assertEquals(1,board.countFreeSpacesInLine(8, 24, 12, 24),"Między tymi polami jest jedno pole");
+    }
+
+    @Test
+    public void testcanSkipWithSymmetryRule(){
+        board.addPiece("A1", 12, 24);
+        assertTrue(board.canSkipWithSymmetryRule(8,24,16,24),"Oba pola dzieli taka sama liczba wolnych pól");
+
     }
 }
     
