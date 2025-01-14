@@ -3,10 +3,12 @@ package com.ludobos1;
 import com.ludobos1.message.CreateMessage;
 import com.ludobos1.message.JoinMessage;
 import com.ludobos1.message.Message;
+import com.ludobos1.message.MoveMessage;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -15,11 +17,16 @@ import javafx.scene.shape.Circle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class Client extends Application {
@@ -35,10 +42,14 @@ public class Client extends Application {
   private Stage primaryStage;
   private int[][] boardTiles;
   private List<Piece> pieces = new ArrayList<>();
+  private Map<Circle, Piece> piecesMap = new HashMap<>();
   private Board board;
-  private Map<Integer, Circle> fields = new HashMap<>();
+  private BiMap<Integer, Circle> fields = HashBiMap.create();
   private String myId;
   private String activePlayer;
+  private Circle selectedCircle;
+  private Color myColor;
+  private List<Circle> possibleMoves = new ArrayList<>();
 
   @Override
   public void start(Stage primaryStage) {
@@ -78,7 +89,8 @@ public class Client extends Application {
         Circle circle = new Circle(15);
         circle.setFill(Color.GREY);
         circle.setStroke(Color.BLACK);
-        int coords = boardTile[0] + 10 * boardTile[1];
+        int coords = boardTile[0] + 100 * boardTile[1];
+        circle.setOnMouseClicked(mouseEvent -> handleCircleClick(mouseEvent, circle));
         fields.put(coords, circle);
         gp.add(circle, boardTile[0], boardTile[1]*2);
       }
@@ -164,6 +176,54 @@ public class Client extends Application {
     popupStage.show();
   }
 
+  private void handleCircleClick(MouseEvent event, Circle circle) {
+    if (activePlayer.equals(myId) && circle.getFill().equals(myColor)) {
+      if (circle.getStroke().equals(Color.DARKBLUE)) {
+        circle.setStroke(Color.BLACK);
+        circle.setRadius(circle.getRadius()+2);
+        circle.setStrokeWidth(1);
+        selectedCircle = null;
+        removePossibleMoves();
+        System.out.println("Pionek odznaczony");
+      } else {
+        if (selectedCircle != null) {
+          selectedCircle.setStroke(Color.BLACK);
+          selectedCircle.setRadius(selectedCircle.getRadius()+2);
+          selectedCircle.setStrokeWidth(1);
+          removePossibleMoves();
+        }
+        circle.setStroke(Color.DARKBLUE);
+        circle.setRadius(circle.getRadius()-2);
+        circle.setStrokeWidth(5);
+        selectedCircle = circle;
+        System.out.println("Pionek zaznaczony");
+        Piece piece = piecesMap.get(circle);
+        for (int[] tile : boardTiles) {
+          if (board.isLegal(piece.getPieceId(),tile[0], tile[1], Integer.parseInt(board.getVariant()))){
+            Circle circle1 = fields.get(tile[0]+100*tile[1]);
+            circle1.setFill(Color.LIGHTCORAL);
+            possibleMoves.add(circle1);
+          }
+        }
+      }
+    } else if (activePlayer.equals(myId) && possibleMoves.contains(circle)) {
+      Piece piece = piecesMap.get(selectedCircle);
+      int x = fields.inverse().get(circle) % 100;
+      int y = (fields.inverse().get(circle) - x) / 100;
+      Message moveMessage = new MoveMessage (piece.getPieceId(), x, y);
+      System.out.println("sending move message" + moveMessage.getContent());
+      sendMessage(moveMessage);
+    } else {
+      System.out.println("Nie możesz kliknąć, bo nie jesteś aktywnym graczem lub to nie twój pionek");
+    }
+  }
+
+  private void removePossibleMoves(){
+    for (Circle circle : possibleMoves) {
+      circle.setFill(Color.GREY);
+    }
+    possibleMoves.clear();
+  }
   private void closeConnection() {
     try{
       if (socket != null) {
@@ -199,6 +259,26 @@ public class Client extends Application {
           board = new BoardBuilder().setVariant(Integer.parseInt(updateSplit[3])).setPlayerNum(Integer.parseInt(updateSplit[4])).build();
           board.initializeGame();
           myId = updateSplit[5];
+          switch (myId) {
+            case "A":
+              myColor = Color.RED;
+              break;
+            case "B":
+              myColor = Color.BLACK;
+              break;
+            case "C":
+              myColor = Color.GREEN;
+              break;
+            case "D":
+              myColor = Color.BROWN;
+              break;
+            case "E":
+              myColor = Color.BLUE;
+              break;
+            case "F":
+              myColor = Color.YELLOW;
+              break;
+          }
           } catch (NumberFormatException e) {
             System.out.println(e.getMessage());
           }
@@ -211,14 +291,16 @@ public class Client extends Application {
         for (Circle circle : fields.values()) {
           circle.setFill(Color.GREY);
         }
+        piecesMap.clear();
         for (int i = 0; i < piecesInfo.length/3; i++) {
           try {
             int x = Integer.parseInt(piecesInfo[3 * i]);
             int y = Integer.parseInt(piecesInfo[3 * i + 1]);
             Piece piece = new Piece(piecesInfo[3 * i + 2], x, y);
             pieces.add(piece);
-            int coords = x + 10 * y;
+            int coords = x + 100 * y;
             Platform.runLater(()->{
+              piecesMap.put(fields.get(coords), piece);
               switch(piece.getPlayerId()){
                 case 'A':
                   fields.get(coords).setFill(Color.RED);

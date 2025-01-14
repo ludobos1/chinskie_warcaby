@@ -75,7 +75,7 @@ public class ClientHandler implements Runnable {
                 if (gameSessions.get(index).board.getPlayerNum() > gameSessions.get(index).getPlayers().size()) {
                   gameSessions.get(index).joinClient(this);
                   gameSessionMap.put(this, gameSessions.get(index));
-                  String yourId = gameSessions.get(index).board.getPlayerId(gameSessions.get(index).getPlayers().size());
+                  String yourId = gameSessions.get(index).board.getPlayerId(gameSessions.get(index).getPlayers().size() - 1);
                   sendBoardState(index, yourId);
                 } else {
                   Message errorMessage = new ErrorMessage("0");
