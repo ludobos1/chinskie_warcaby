@@ -199,17 +199,13 @@ public class Board {
         }
     }
 
-    public void setPieces(List<Piece> pieces) {
-        this.pieces = pieces;
-    }
-
 
     public boolean movePiece(String pieceId, int newX, int newY) {
         for (Piece piece : pieces) {
             if (piece.getPieceId().equals(pieceId)) {
                 if (isLegal(pieceId, newX, newY,1)) {
                     piece.setPosition(newX, newY);
-                    activePlayer=activePlayer+1%numberOfPlayers;
+                    activePlayer=(activePlayer+1)%numberOfPlayers;
                     return true;
                 } else {
                     return false;
@@ -399,7 +395,7 @@ public class Board {
         int[][] directions = {
             {2, 0}, {-2, 0}, {-1, -2}, {1, -2}, {-1, 2}, {1, 2}
         };
-    
+
         for (int[] dir : directions) {
             if (oldX + dir[0] == newX && oldY + dir[1] == newY) {
                 return true;

@@ -180,21 +180,15 @@ public class Client extends Application {
     if (activePlayer.equals(myId) && circle.getFill().equals(myColor)) {
       if (circle.getStroke().equals(Color.DARKBLUE)) {
         circle.setStroke(Color.BLACK);
-        circle.setRadius(circle.getRadius()+2);
-        circle.setStrokeWidth(1);
         selectedCircle = null;
         removePossibleMoves();
         System.out.println("Pionek odznaczony");
       } else {
         if (selectedCircle != null) {
           selectedCircle.setStroke(Color.BLACK);
-          selectedCircle.setRadius(selectedCircle.getRadius()+2);
-          selectedCircle.setStrokeWidth(1);
           removePossibleMoves();
         }
         circle.setStroke(Color.DARKBLUE);
-        circle.setRadius(circle.getRadius()-2);
-        circle.setStrokeWidth(5);
         selectedCircle = circle;
         System.out.println("Pionek zaznaczony");
         Piece piece = piecesMap.get(circle);
@@ -207,7 +201,12 @@ public class Client extends Application {
         }
       }
     } else if (activePlayer.equals(myId) && possibleMoves.contains(circle)) {
+      removePossibleMoves();
       Piece piece = piecesMap.get(selectedCircle);
+      selectedCircle.setStroke(Color.BLACK);
+      selectedCircle.setRadius(selectedCircle.getRadius()+2);
+      selectedCircle.setStrokeWidth(1);
+      selectedCircle = null;
       int x = fields.inverse().get(circle) % 100;
       int y = (fields.inverse().get(circle) - x) / 100;
       Message moveMessage = new MoveMessage (piece.getPieceId(), x, y);
@@ -244,6 +243,13 @@ public class Client extends Application {
         if(!isInGameSession) {
           writeSessions(sessions);
         }
+        break;
+      case MOVE:
+        String[] messageContent = message.getContent().split(",");
+        String pieceId = messageContent[0];
+        int x1 = Integer.parseInt(messageContent[1]);
+        int y1 = Integer.parseInt(messageContent[2]);
+        board.movePiece(pieceId, x1, y1);
         break;
       case UPDATE:
         System.out.println("Recieved update");
@@ -289,7 +295,11 @@ public class Client extends Application {
         activePlayer = updateSplit[0];
         String[] piecesInfo = updateSplit[1].split(",");
         for (Circle circle : fields.values()) {
-          circle.setFill(Color.GREY);
+          Platform.runLater(()-> {
+            circle.setFill(Color.GREY);
+            circle.setRadius(15);
+            circle.setStrokeWidth(1);
+          });
         }
         piecesMap.clear();
         for (int i = 0; i < piecesInfo.length/3; i++) {
@@ -321,12 +331,20 @@ public class Client extends Application {
                   fields.get(coords).setFill(Color.YELLOW);
                   break;
               }
+              if(activePlayer.equals(myId)) {
+                for (Circle circle : fields.values()) {
+                  if (circle.getFill().equals(myColor)) {
+                    circle.setRadius(13);
+                    circle.setStrokeWidth(5);
+                  }
+                }
+              }
             });
           } catch (NumberFormatException e) {
             System.out.println(e.getMessage());
           }
         }
-        board.setPieces(pieces);
+        //board.setPieces(pieces);
         break;
       case ERROR:
         switch (message.getContent()) {
@@ -338,6 +356,12 @@ public class Client extends Application {
               alert.setContentText("Nie można dołączyć - sesja pełna");
               alert.showAndWait();
             });
+            break;
+          case "1":
+            System.out.println("nielegalny ruch");
+            break;
+          default:
+            System.out.println("nieznany błąd");
         }
         break;
       default:

@@ -59,12 +59,25 @@ public class ClientHandler implements Runnable {
      private void handleMessage(Message message) {
         switch (message.getType()) {
             case MOVE:
-              System.out.println("Odebrano ruch od klienta.");
+              System.out.println("Odebrano ruch od klienta: " + message.getContent());
               GameSession session = gameSessionMap.get(this);
+              String[] messageContent = message.getContent().split(",");
+              String pieceId = messageContent[0];
+              int x = Integer.parseInt(messageContent[1]);
+              int y = Integer.parseInt(messageContent[2]);
               if (session != null) {
-                String pieces = session.board.getAllPiecesInfo();
-                char activePlayer = session.board.getActivePlayer();
-                session.broadcastMessage(new UpdateMessage(pieces, activePlayer));
+                System.out.println("Wykonuję ruch: " + pieceId + " " + x + " " + y);
+                if (session.board.movePiece(pieceId, x, y)) {
+                  String pieces = session.board.getAllPiecesInfo();
+                  System.out.println(pieces);
+                  char activePlayer = session.board.getActivePlayer();
+                  System.out.println(activePlayer);
+                  System.out.println("broadcastuję message pieces: " + pieces + "activePlayer: " + activePlayer);
+                  session.broadcastMessage(new UpdateMessage(pieces, activePlayer));
+                  session.broadcastMessage(message);
+                } else {
+                  this.sendMessage(new ErrorMessage("1"));
+                }
               } else {
                 System.out.println("Klient nie należy do żadnej sesji!");
               }
@@ -122,6 +135,7 @@ public class ClientHandler implements Runnable {
       String playerNum = String.valueOf(gameSessions.get(sessionIndex).board.getPlayerNum());
       char startingPlayer = gameSessions.get(sessionIndex).board.getActivePlayer();
       Message updateMessage = new UpdateMessage(pieces, boardSize, variant, playerNum, startingPlayer, yourId);
+      System.out.println("wysyłam update: " + updateMessage.getContent());
       this.sendMessage(updateMessage);
     }
 
