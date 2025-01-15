@@ -379,16 +379,19 @@ public class Board {
 
     public boolean canSkipWithSymmetryRule(int currentX, int currentY, int targetX, int targetY) {
         int middleX = (currentX + targetX) / 2;
+        System.out.println("middleX: " + middleX);
         int middleY = (currentY + targetY) / 2;
-    
+        System.out.println("middleY: "+middleY);
         if (isFieldFree(middleX, middleY)) {
+            System.out.println("Field free returning false");
             return false; 
         }
     
         int freeSpacesBefore = countFreeSpacesInLine(currentX, currentY, middleX, middleY);
-    
+        System.out.println("freeSpacesBefore: " + freeSpacesBefore);
         int freeSpacesAfter = countFreeSpacesInLine(middleX, middleY, targetX, targetY);
-    
+        System.out.println("freeSpacesAfter: " + freeSpacesAfter);
+        System.out.println(freeSpacesBefore==freeSpacesAfter);
         return freeSpacesBefore == freeSpacesAfter;
     }
     
