@@ -50,6 +50,8 @@ public class Client extends Application {
   private Circle selectedCircle;
   private Color myColor;
   private List<Circle> possibleMoves = new ArrayList<>();
+  private int furthestCol;
+  private int furthestRow;
 
   @Override
   public void start(Stage primaryStage) {
@@ -93,9 +95,30 @@ public class Client extends Application {
         circle.setOnMouseClicked(mouseEvent -> handleCircleClick(mouseEvent, circle));
         fields.put(coords, circle);
         gp.add(circle, boardTile[0], boardTile[1]*2);
+        if (boardTile[0] > furthestCol) {
+          furthestCol = boardTile[0];
+        }
+        if (boardTile[1] > furthestRow) {
+          furthestRow = boardTile[1];
+        }
       }
+      Button pass = new Button("Pass");
+      pass.setOnAction(actionEvent -> {
+        if (activePlayer.equals(myId)){
+          removePossibleMoves();
+          if (selectedCircle!=null) {
+            selectedCircle.setStroke(Color.BLACK);
+            selectedCircle.setRadius(selectedCircle.getRadius() + 2);
+            selectedCircle.setStrokeWidth(1);
+            selectedCircle = null;
+          }
+          Message moveMessage = new MoveMessage ("pass", 0, 0);
+          System.out.println("sending move message" + moveMessage.getContent());
+          sendMessage(moveMessage);
+        }
+      });
+      gp.add(pass,furthestCol+1,furthestRow);
       Scene gameScene = new Scene(gp, 1000, 1000);
-
       primaryStage.setScene(gameScene);
     });
   }
@@ -363,6 +386,45 @@ public class Client extends Application {
           default:
             System.out.println("nieznany błąd");
         }
+        break;
+      case Winner:
+        Platform.runLater(() -> {
+          String[] mess = message.getContent().split(",");
+          Alert alert = new Alert(Alert.AlertType.INFORMATION);
+          alert.setTitle("Winner");
+          alert.setHeaderText(null);
+          String color;
+          switch (mess[0]) {
+            case "A":
+              color = "red";
+              break;
+            case "B":
+              color = "black";
+              break;
+            case "C":
+              color = "green";
+              break;
+            case "D":
+              color = "brown";
+              break;
+            case "E":
+              color = "blue";
+              break;
+            case "F":
+              color = "yellow";
+              break;
+            default:
+              color = "błąd";
+          }
+          alert.setContentText("gracz " + color + " zakończył grę");
+          alert.showAndWait();
+          if (mess[1].equals("1")){
+            System.out.println("Zamykam aplikację...");
+            closeConnection();
+            running = false;
+            Platform.exit();
+          }
+        });
         break;
       default:
         System.out.println("Unrecognized message type: "+message.getType().name());

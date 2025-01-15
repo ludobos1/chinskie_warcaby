@@ -6,5 +6,6 @@ public enum TypeEnum {
   UPDATE,
   CREATE,
   SESSIONS,
-  ERROR
+  ERROR,
+  Winner
 }

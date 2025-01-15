@@ -1,9 +1,6 @@
 package com.ludobos1;
 
-import com.ludobos1.message.ErrorMessage;
-import com.ludobos1.message.Message;
-import com.ludobos1.message.SessionsMessage;
-import com.ludobos1.message.UpdateMessage;
+import com.ludobos1.message.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -68,6 +65,17 @@ public class ClientHandler implements Runnable {
               if (session != null) {
                 System.out.println("Wykonuję ruch: " + pieceId + " " + x + " " + y);
                 if (session.board.movePiece(pieceId, x, y)) {
+                  if (!pieceId.equals("pass")) {
+                    if (session.board.ifWon(pieceId.charAt(0))) {
+                      String messText;
+                      if (session.board.isGameOver()) {
+                        messText = pieceId.charAt(0) + ",1";
+                      } else {
+                        messText = pieceId.charAt(0) + ",0";
+                      }
+                      session.broadcastMessage(new WinnerMessage(messText));
+                    }
+                  }
                   String pieces = session.board.getAllPiecesInfo();
                   System.out.println(pieces);
                   char activePlayer = session.board.getActivePlayer();

@@ -17,6 +17,8 @@ public class Board {
     private final int numberOfPlayers;
     private int activePlayer;
     private char[] playerIds;
+    private int playersFinished=0;
+    private boolean isGameOver=false;
 
     public Board(int gameType, int numberOfPlayers) {
         this.gameType=gameType;
@@ -201,18 +203,23 @@ public class Board {
 
 
     public boolean movePiece(String pieceId, int newX, int newY) {
-        for (Piece piece : pieces) {
-            if (piece.getPieceId().equals(pieceId)) {
-                if (isLegal(pieceId, newX, newY,1)) {
-                    piece.setPosition(newX, newY);
-                    activePlayer=(activePlayer+1)%numberOfPlayers;
-                    return true;
-                } else {
-                    return false;
+        if(!pieceId.equals("pass")) {
+            for (Piece piece : pieces) {
+                if (piece.getPieceId().equals(pieceId)) {
+                    if (isLegal(pieceId, newX, newY, 1)) {
+                        piece.setPosition(newX, newY);
+                        activePlayer = (activePlayer + 1) % (numberOfPlayers-playersFinished);
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
             }
+            return false;
+        } else {
+            activePlayer = (activePlayer + 1) % (numberOfPlayers-playersFinished);
+            return true;
         }
-        return false;  
     }
 
 
@@ -233,12 +240,25 @@ public class Board {
                 }
             }
         }
-
+        char[] newIds = new char[playerIds.length-1];
+        int index = 0;
+        for (char playerId : playerIds) {
+            if (playerId != playerID) {
+                newIds[index] = playerId;
+                index++;
+            }
+        }
+        playerIds = newIds;
+        playersFinished ++;
+        if(playersFinished == numberOfPlayers-1) {
+            isGameOver = true;
+        }
         return true;
     }
 
-
-
+    public boolean isGameOver() {
+        return isGameOver;
+    }
 
     public List<int[]> getSector(char playerId) {
         List<List<int[]>> sectors = List.of(p1, p2, p3, p4, p5, p6);
