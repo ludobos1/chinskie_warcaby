@@ -216,6 +216,7 @@ public class Client extends Application {
         System.out.println("Pionek zaznaczony");
         Piece piece = piecesMap.get(circle);
         for (int[] tile : boardTiles) {
+          System.out.println("sprawdzam legalność dla pieceId: " + piece.getPieceId()+" x = " + tile[0]+" y = " + tile[1] + " wariant: " + Integer.parseInt(board.getVariant()));
           if (board.isLegal(piece.getPieceId(),tile[0], tile[1], Integer.parseInt(board.getVariant()))){
             Circle circle1 = fields.get(tile[0]+100*tile[1]);
             circle1.setFill(Color.LIGHTCORAL);

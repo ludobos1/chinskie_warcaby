@@ -16,7 +16,7 @@ public class Board {
     private int sideLength=1;
     private final int numberOfPlayers;
     private int activePlayer;
-    private char[] playerIds;
+    private char[] playerIds = {'A','B','C','D','E','F'};
     private int playersFinished=0;
     private boolean isGameOver=false;
 
@@ -338,7 +338,7 @@ public class Board {
             System.out.println("Nielegalny ruch – współrzędne poza dozwolonym obszarem gry.");
             return false;
         }
-    
+
         // Sprawdzanie, czy pole docelowe jest zajęte
         if (!isFieldFree(newX, newY)) {
             System.out.println("Pole docelowe (" + newX + ", " + newY + ") jest zajęte.");

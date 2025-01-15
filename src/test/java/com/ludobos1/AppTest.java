@@ -3,8 +3,8 @@ package com.ludobos1;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.beans.Transient;
 import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -12,11 +12,15 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class AppTest {
     private Board board;
+    private Board board1;
 
     @BeforeEach
     public void setUp() {
         board = new BoardBuilder().setVariant(1).setPlayerNum(6).build();  // Przykładowy typ gry
         board.starBoard = board.generateStarBoard(); // Generowanie planszy dla testów
+
+        board1 = new BoardBuilder().setVariant(2).setPlayerNum(6).build();
+        board1.starBoard = board.generateStarBoard();
     }
 
     @Test
@@ -75,7 +79,7 @@ public void testMoveByJumping() {
     assertEquals(11, movedPiece.getX(), "Pionek A1 powinien znajdować się na pozycji X=11.");
     assertEquals(14, movedPiece.getY(), "Pionek A1 powinien znajdować się na pozycji Y=14.");
 }
-    
+    @Test
     public void testMoveByMultipleJumping() {
         // Ustawienie pionków na planszy
         board.addPiece("A1", 9, 10);
@@ -167,8 +171,9 @@ public void testMoveByJumping() {
 
     @Test
     public void testcanSkipWithSymmetryRule(){
-        board.addPiece("A1", 12, 24);
-        assertTrue(board.canSkipWithSymmetryRule(8,24,16,24),"Oba pola dzieli taka sama liczba wolnych pól");
+        board1.addPiece("A1", 12, 24);
+        board1.addPiece("B1", 8, 24);
+        assertTrue(board1.isLegal("B1",16,24,2),"Oba pola dzieli taka sama liczba wolnych pól");
 
     }
 }
