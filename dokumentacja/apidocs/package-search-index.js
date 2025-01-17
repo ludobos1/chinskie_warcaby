@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.ludobos1"},{"l":"com.ludobos1.message"}];updateSearchResults();
