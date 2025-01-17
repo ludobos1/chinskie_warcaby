@@ -28,7 +28,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * Klasa {@code Client} implementuje klienta aplikacji umożliwiającej grę wieloosobową.
+ * Klient łączy się z serwerem, umożliwia tworzenie i dołączanie do gier oraz zarządza interfejsem użytkownika.
+ * <p>
+ * Używa JavaFX do wyświetlania GUI oraz gniazd sieciowych do komunikacji z serwerem.
+ */
 public class Client extends Application {
   private static final String SERVER_ADDRESS = "localhost";
   private static final int SERVER_PORT = 1234;
@@ -53,6 +58,11 @@ public class Client extends Application {
   private int furthestCol;
   private int furthestRow;
 
+  /**
+   * Punkt wejścia aplikacji JavaFX.
+   *
+   * @param primaryStage główne okno aplikacji.
+   */
   @Override
   public void start(Stage primaryStage) {
     Client client = new Client();
@@ -61,10 +71,19 @@ public class Client extends Application {
     client.menu();
   }
 
+
+  /**
+   * Główna metoda aplikacji.
+   *
+   * @param args argumenty przekazane wierszem poleceń.
+   */
   public static void main(String[] args) {
     launch(args);
   }
 
+  /**
+   * Wyświetla menu główne aplikacji.
+   */
   public void menu() {
     Scene scene = new Scene(menuRoot, 800, 800);
     Button createButton = new Button("Create");
@@ -82,6 +101,9 @@ public class Client extends Application {
     primaryStage.show();
   }
 
+  /**
+   * Uruchamia logikę gry, tworząc scenę gry i inicjalizując jej elementy.
+   */
   public void game() {
     Platform.runLater(() -> {
       GridPane gp = new GridPane();
@@ -123,13 +145,22 @@ public class Client extends Application {
     });
   }
 
+
+  /**
+   * Inicjalizuje połączenie klienta z serwerem i uruchamia wątek odbierania wiadomości.
+   */
   public void startClient() {
     try {
       connectClient();
       new Thread(this::recieveMessages).start();
-      //userInput();
     } catch (IOException e) { System.out.println(e.getMessage()); }
   }
+
+  /**
+   * Łączy klienta z serwerem za pomocą gniazda sieciowego.
+   *
+   * @throws IOException jeśli wystąpi problem z połączeniem.
+   */
   private void connectClient() throws IOException {
       socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
       out = new ObjectOutputStream(socket.getOutputStream());
@@ -138,6 +169,10 @@ public class Client extends Application {
       running = true;
       System.out.println("Polaczono z serwerem");
   }
+
+  /**
+   * Obsługuje odbieranie wiadomości od serwera w osobnym wątku.
+   */
   private void recieveMessages() {
     while (running) {
       try{
@@ -152,6 +187,9 @@ public class Client extends Application {
     }
   }
 
+  /**
+   * Tworzy nową grę i wysyła odpowiednią wiadomość do serwera.
+   */
   private void createGame(){
     Stage popupStage = new Stage();
     popupStage.initModality(Modality.APPLICATION_MODAL); // Blokuje inne okna
@@ -199,6 +237,12 @@ public class Client extends Application {
     popupStage.show();
   }
 
+  /**
+   * Obsługuje kliknięcie w kółko na planszy gry.
+   *
+   * @param event  zdarzenie kliknięcia myszą.
+   * @param circle kółko, które zostało kliknięte.
+   */
   private void handleCircleClick(MouseEvent event, Circle circle) {
     if (activePlayer.equals(myId) && circle.getFill().equals(myColor)) {
       if (circle.getStroke().equals(Color.DARKBLUE)) {
@@ -244,12 +288,19 @@ public class Client extends Application {
     }
   }
 
+  /**
+   * Usuwa możliwe ruchy na planszy z tablicy możliwych ruchów.
+   */
   private void removePossibleMoves(){
     for (Circle circle : possibleMoves) {
       circle.setFill(Color.GREY);
     }
     possibleMoves.clear();
   }
+
+  /**
+   * Zamyka połączenie z serwerem i zwalnia zasoby.
+   */
   private void closeConnection() {
     try{
       if (socket != null) {
@@ -263,6 +314,12 @@ public class Client extends Application {
       }
     } catch (IOException e) { System.out.println(e.getMessage()); }
   }
+
+  /**
+   * Obsługuje wiadomość odebraną od serwera.
+   *
+   * @param message wiadomość odebrana od serwera.
+   */
   private void handleMessage(Message message){
     switch (message.getType()) {
       case SESSIONS:
@@ -435,12 +492,24 @@ public class Client extends Application {
         System.out.println("Unrecognized message type: "+message.getType().name());
     }
   }
+
+  /**
+   * Wysyła wiadomość do serwera.
+   *
+   * @param message wiadomość do wysłania.
+   */
   private void sendMessage(Message message) {
     try {
       out.writeObject(message);
       out.flush();
     } catch(IOException e) { System.out.println("Error sending message"); }
   }
+
+  /**
+   * Wyświetla dostępne sesje gier w interfejsie użytkownika.
+   *
+   * @param sessions lista dostępnych sesji gier.
+   */
   private void writeSessions(String[] sessions) {
     Platform.runLater(() -> {
       if (sessions.length > 0) {
@@ -467,76 +536,3 @@ public class Client extends Application {
     });
   }
 }
-
-/*private void userInput() {
-    while (running) {
-      if (!isInGameSession) {
-        writeSessions(sessions);
-        System.out.println("Wpisz 'x name' gdzie x rozmiar boku planszy a name to nazwa sesji aby" +
-                " stworzyc nowa gre lub podaj numer istniejacej gry z listy aby dolaczyc. 'exit' - wyjscie");
-        String input = scanner.nextLine();
-        String[] tok = input.split(" ");
-        if (tok[0].equals("exit")) {
-          System.out.println("Closing client");
-          running = false;
-          closeConnection();
-          break;
-        }
-        if (tok.length==1) {
-          try {
-            int x = Integer.parseInt(tok[0]);
-            if (x >= sessions.length || x < 0) {
-              System.out.println("zla dana");
-            } else {
-              Message joinMessage = new JoinMessage(x);
-              sendMessage(joinMessage);
-              isInGameSession = true;
-            }
-            continue;
-          } catch(NumberFormatException e) {
-            System.out.println("zla dana");
-            continue;
-          }
-        }
-        String name = tok[1];
-        String number = tok[0];
-        try {
-        Message createMessage = new CreateMessage(Integer.parseInt(number), name);
-        sendMessage(createMessage);
-        isInGameSession = true;
-        } catch (NumberFormatException e) {
-          System.out.println("zle dane");
-        }
-        continue;
-      }
-      System.out.println("Podaj ruch wpisujac: '(a1,a2) (b1,b2)' lub 'exit' aby wyjsc");
-      String input = scanner.nextLine();
-      if (input.equals("exit")) {
-        System.out.println("Closing client");
-        running = false;
-        closeConnection();
-        break;
-      }
-      String[] splitted = input.split(" ");
-      if (splitted.length != 2) {
-        System.out.println("zle dane");
-        continue;
-      }
-
-      String fromTrim = splitted[0].substring(1, splitted[0].length()-1);
-      String toTrim = splitted[1].substring(1, splitted[1].length()-1);
-      String[] from = fromTrim.split(",");
-      String[] to = toTrim.split(",");
-      if (to.length != 2 || from.length != 2) {
-        System.out.println("zle dane");
-        continue;
-      }
-      try {
-        Message moveMessage = new MoveMessage(Integer.parseInt(from[0]), Integer.parseInt(from[1]),
-                Integer.parseInt(to[0]), Integer.parseInt(to[1]));
-        sendMessage(moveMessage);
-      } catch (NumberFormatException e) {
-        System.out.println("zle dane");
-      }
-    }
-  }*/
