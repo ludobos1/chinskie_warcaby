@@ -206,7 +206,7 @@ public class Board {
         if(!pieceId.equals("pass")) {
             for (Piece piece : pieces) {
                 if (piece.getPieceId().equals(pieceId)) {
-                    if (isLegal(pieceId, newX, newY, 1)) {
+                    if (isLegal(pieceId, newX, newY, gameType)) {
                         piece.setPosition(newX, newY);
                         activePlayer = (activePlayer + 1) % (numberOfPlayers-playersFinished);
                         return true;
@@ -401,15 +401,21 @@ public class Board {
         int dx = (endX - startX) / Math.max(1, Math.abs(endX - startX));
         int dy = (endY - startY) / Math.max(1, Math.abs(endY - startY));
     
-        int x = startX+2*dx, y = startY+2*dy;
+        int x = startX+dx, y = startY+2*dy;
         while (x != endX || y != endY) {
             if (isFieldFree(x, y)) {
-                freeSpaces++;
+                if(isWithinBoard(x, y)) {
+                    freeSpaces++;
+                } else{
+                    break;
+                }
             } else {
                 break; 
             }
-            x += 2*dx;
+            x += dx;
+            System.out.println("x: " + x);
             y += 2*dy;
+            System.out.println("y: " + y);
         }
     
         return freeSpaces;

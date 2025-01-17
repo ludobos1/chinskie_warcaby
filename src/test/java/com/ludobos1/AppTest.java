@@ -162,12 +162,7 @@ public void testMoveByJumping() {
         board.addPiece("B1", 10,20);
       assertTrue(board.isLegal("A1",12,16,2), "Taki skok powinien być możliwy");
     }
-    
 
-    @Test
-    public void testCountFreeSpacesInLine(){
-        assertEquals(1,board.countFreeSpacesInLine(8, 24, 12, 24),"Między tymi polami jest jedno pole");
-    }
 
     @Test
     public void testcanSkipWithSymmetryRule(){

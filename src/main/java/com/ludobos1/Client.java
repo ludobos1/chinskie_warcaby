@@ -266,6 +266,7 @@ public class Client extends Application {
   private void handleMessage(Message message){
     switch (message.getType()) {
       case SESSIONS:
+        System.out.println("recieved  sessions: " + message.getContent());
         sessions = message.getContent().split(",");
         if(!isInGameSession) {
           writeSessions(sessions);
@@ -297,7 +298,7 @@ public class Client extends Application {
               myColor = Color.RED;
               break;
             case "B":
-              myColor = Color.BLACK;
+              myColor = Color.MISTYROSE;
               break;
             case "C":
               myColor = Color.GREEN;
@@ -343,7 +344,7 @@ public class Client extends Application {
                   fields.get(coords).setFill(Color.RED);
                   break;
                 case 'B':
-                  fields.get(coords).setFill(Color.BLACK);
+                  fields.get(coords).setFill(Color.MISTYROSE);
                   break;
                 case 'C':
                   fields.get(coords).setFill(Color.GREEN);
@@ -403,7 +404,7 @@ public class Client extends Application {
               color = "red";
               break;
             case "B":
-              color = "black";
+              color = "mistyrose";
               break;
             case "C":
               color = "green";
