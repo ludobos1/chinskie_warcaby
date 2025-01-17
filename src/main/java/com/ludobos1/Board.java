@@ -2,6 +2,10 @@ package com.ludobos1;
 import java.util.*;
 
 
+/**
+ * Klasa Board reprezentuje planszę dla gry w chińskie warcaby. Obsługuje inicjalizację, zarządzanie i przemieszczanie pionków,
+ * tury graczy oraz sprawdzanie warunków zwycięstwa.
+ */
 public class Board {
     private final List<int[]> p1 = new ArrayList<>();
     private final List<int[]> p2 = new ArrayList<>();
@@ -20,11 +24,20 @@ public class Board {
     private int playersFinished=0;
     private boolean isGameOver=false;
 
+    /**
+     * Konstruktor klasy Board.
+     *
+     * @param gameType Typ gry (np. 1, 2).
+     * @param numberOfPlayers Liczba graczy w grze.
+     */
     public Board(int gameType, int numberOfPlayers) {
         this.gameType=gameType;
         this.numberOfPlayers=numberOfPlayers;
     }
 
+    /**
+     * Inicjalizuje grę, ustawiając planszę i pionki graczy.
+     */
     public void initializeGame() {
         starBoard = generateStarBoard();
         initializeAllPlayersPieces(numberOfPlayers);
@@ -32,6 +45,11 @@ public class Board {
         activePlayer = random.nextInt(numberOfPlayers);
     }
 
+    /**
+     * Generuje dozwolone pozycje na planszy w zależności od długości boku sześciokąta (narazie jest implementacja tylko dla jednego rozmiaru).
+     *
+     * @return Lista dozwolonych pozycji na planszy.
+     */
     public List<int[]> generateStarBoard() {
         List<int[]> allowedPositions = new ArrayList<>();
         sideLength=5;
@@ -143,7 +161,12 @@ public class Board {
 
         return allowedPositions;
     }
-    
+
+    /**
+     * Inicjalizuje pionki dla wszystkich graczy w zależności od liczby graczy.
+     *
+     * @param numberOfPlayers Liczba graczy w grze.
+     */
     public void initializeAllPlayersPieces(int numberOfPlayers) {
         if (numberOfPlayers == 2) {
             initializePlayerPieces('A');
@@ -173,8 +196,12 @@ public class Board {
             System.out.println("Nieprawidłowa liczba graczy. Obsługiwane są tylko wartości 2, 4 lub 6.");
         }
     }
-    
 
+    /**
+     * Inicjalizuje pionki dla konkretnego gracza.
+     *
+     * @param playerId ID gracza.
+     */
     public void initializePlayerPieces(char playerId) {
     List<int[]> sector = getSector(playerId);
 
@@ -193,6 +220,13 @@ public class Board {
     System.out.println("Pionki dla gracza " + playerId + " zostały rozmieszczone w sektorze " + playerSectors.get(playerId) + ".");
     }
 
+    /**
+     * Dodaje pionek na planszę w określonej pozycji.
+     *
+     * @param pieceId ID pionka.
+     * @param x Współrzędna x pionka.
+     * @param y Współrzędna y pionka.
+     */
     public void addPiece(String pieceId, int x, int y) {
         if (isWithinBoard(x, y) && isFieldFree(x, y)) {
             pieces.add(new Piece(pieceId, x, y));
@@ -201,7 +235,14 @@ public class Board {
         }
     }
 
-
+    /**
+     * Przemieszcza pionek na nową pozycję na planszy.
+     *
+     * @param pieceId ID pionka do przemieszczenia.
+     * @param newX Nowa współrzędna x pionka.
+     * @param newY Nowa współrzędna y pionka.
+     * @return True, jeśli ruch się powiódł, false w przeciwnym razie.
+     */
     public boolean movePiece(String pieceId, int newX, int newY) {
         if(!pieceId.equals("pass")) {
             for (Piece piece : pieces) {
@@ -222,7 +263,12 @@ public class Board {
         }
     }
 
-
+    /**
+     * Sprawdza, czy gracz wygrał grę, przenosząc wszystkie swoje pionki do przeciwnego sektora.
+     *
+     * @param playerID ID gracza do sprawdzenia.
+     * @return True, jeśli gracz wygrał, false w przeciwnym razie.
+     */
     public boolean ifWon(char playerID) {
         List<int[]> oppositeSector = getOppositeSector(playerID);
         
@@ -256,10 +302,21 @@ public class Board {
         return true;
     }
 
+    /**
+     * Zwraca informację, czy gra została zakończona.
+     *
+     * @return True, jeśli gra zakończona, false w przeciwnym razie.
+     */
     public boolean isGameOver() {
         return isGameOver;
     }
 
+    /**
+     * Zwraca sektor dla konkretnego gracza.
+     *
+     * @param playerId ID gracza.
+     * @return Lista pozycji w sektorze gracza.
+     */
     public List<int[]> getSector(char playerId) {
         List<List<int[]>> sectors = List.of(p1, p2, p3, p4, p5, p6);
 
@@ -270,8 +327,13 @@ public class Board {
 
         return sector;
     }
-        
 
+    /**
+     * Zwraca przeciwny sektor dla konkretnego gracza.
+     *
+     * @param playerId ID gracza.
+     * @return Lista pozycji w przeciwnym sektorze.
+     */
     public List<int[]> getOppositeSector(char playerId) {
         List<List<int[]>> sectors = List.of(p1, p2, p3, p4, p5, p6);
     
@@ -287,7 +349,13 @@ public class Board {
     
         return null; 
     }
-    
+
+    /**
+     * Sprawdza, czy pionek znajduje się w przeciwnym sektorze swojego gracza.
+     *
+     * @param pieceId ID pionka.
+     * @return True, jeśli pionek jest w przeciwnym sektorze, false w przeciwnym razie.
+     */
     public boolean isPieceInOppositeSector(String pieceId) {
         for (Piece piece : pieces) {
             if (piece.getPieceId().equals(pieceId)) {
@@ -304,8 +372,14 @@ public class Board {
     
         return false; // Pionek nie znajduje się w przeciwnym sektorze
     }
-    
 
+    /**
+     * Sprawdza, czy dane pole jest wolne na planszy (czyli nie jest zajęte przez żadnego pionka).
+     *
+     * @param x Współrzędna x pola.
+     * @param y Współrzędna y pola.
+     * @return True, jeśli pole jest wolne, false w przeciwnym razie.
+     */
     public boolean isFieldFree(int x, int y) {
         for (Piece piece : pieces) {
             if (piece.getX() == x && piece.getY() == y) {
@@ -315,6 +389,15 @@ public class Board {
         return true;
     }
 
+    /**
+     * Sprawdza, czy dany ruch jest legalny na podstawie typu gry i innych zasad.
+     *
+     * @param pieceId ID pionka do ruchu.
+     * @param newX Nowa współrzędna x pionka.
+     * @param newY Nowa współrzędna y pionka.
+     * @param gameType Typ gry.
+     * @return True, jeśli ruch jest legalny, false w przeciwnym razie.
+     */
     public boolean isLegal(String pieceId, int newX, int newY, int gameType) {
         char playerId=pieceId.charAt(0);
         Piece piece = null;
@@ -377,6 +460,15 @@ public class Board {
     }
     }
 
+    /**
+     * Sprawdza, czy ruch jest możliwy z zasadą symetrii (zasada pomijania).
+     *
+     * @param currentX Obecna współrzędna x pionka.
+     * @param currentY Obecna współrzędna y pionka.
+     * @param targetX Docelowa współrzędna x pionka.
+     * @param targetY Docelowa współrzędna y pionka.
+     * @return True, jeśli ruch jest możliwy z zasadą symetrii, false w przeciwnym razie.
+     */
     public boolean canSkipWithSymmetryRule(int currentX, int currentY, int targetX, int targetY) {
         int middleX = (currentX + targetX) / 2;
         int middleY = (currentY + targetY) / 2;
@@ -391,7 +483,16 @@ public class Board {
     
         return freeSpacesBefore == freeSpacesAfter;
     }
-    
+
+    /**
+     * Liczy liczbę wolnych pól na linii między dwoma punktami.
+     *
+     * @param startX Współrzędna początkowa x.
+     * @param startY Współrzędna początkowa y.
+     * @param endX Współrzędna końcowa x.
+     * @param endY Współrzędna końcowa y.
+     * @return Liczba wolnych pól na linii.
+     */
     public int countFreeSpacesInLine(int startX, int startY, int endX, int endY) {
         int freeSpaces = 0;
     
@@ -411,6 +512,16 @@ public class Board {
     
         return freeSpaces;
     }
+
+    /**
+     * Sprawdza, czy dwa punkty są sąsiednie na planszy.
+     *
+     * @param oldX Stara współrzędna x.
+     * @param oldY Stara współrzędna y.
+     * @param newX Nowa współrzędna x.
+     * @param newY Nowa współrzędna y.
+     * @return True, jeśli punkty są sąsiednie, false w przeciwnym razie.
+     */
     private boolean isAdjacent(int oldX, int oldY, int newX, int newY) {
         int[][] directions = {
             {2, 0}, {-2, 0}, {-1, -2}, {1, -2}, {-1, 2}, {1, 2}
@@ -423,9 +534,17 @@ public class Board {
         }
         return false;
     }
-    
-    
 
+    /**
+     * Sprawdza, czy pionek może dotrzeć do celu poprzez skakanie.
+     *
+     * @param currentX Obecna współrzędna x pionka.
+     * @param currentY Obecna współrzędna y pionka.
+     * @param targetX Docelowa współrzędna x pionka.
+     * @param targetY Docelowa współrzędna y pionka.
+     * @param visited Tablica boolowska do śledzenia odwiedzonych pól.
+     * @return True, jeśli pionek może dotrzeć do celu poprzez skakanie, false w przeciwnym razie.
+     */
     private boolean canReachByHopping(int currentX, int currentY, int targetX, int targetY, boolean[] visited) {
         if (currentX == targetX && currentY == targetY) {
             return true; 
@@ -448,17 +567,22 @@ public class Board {
             int nextX = currentX + dir[0];
             int nextY = currentY + dir[1];
 
-        if (!isFieldFree(middleX, middleY) && isFieldFree(nextX, nextY)) {
-            if (canReachByHopping(nextX, nextY, targetX, targetY, visited)) {
-                return true; 
+            if (!isFieldFree(middleX, middleY) && isFieldFree(nextX, nextY)) {
+                if (canReachByHopping(nextX, nextY, targetX, targetY, visited)) {
+                 return true;
+                }
             }
         }
+        return false;
     }
 
-    return false; 
-}
-
-
+    /**
+     * Sprawdza, czy dana pozycja mieści się w dozwolonych granicach planszy.
+     *
+     * @param x Współrzędna x.
+     * @param y Współrzędna y.
+     * @return True, jeśli pozycja mieści się w granicach planszy, false w przeciwnym razie.
+     */
     private boolean isWithinBoard(int x, int y) {
         for (int[] position : starBoard) {
             if (position[0] == x && position[1] == y) {
@@ -468,7 +592,13 @@ public class Board {
         return false;
     }
 
-
+    /**
+     * Zwraca indeks danej pozycji w liście dozwolonych pozycji.
+     *
+     * @param x Współrzędna x.
+     * @param y Współrzędna y.
+     * @return Indeks pozycji, lub -1, jeśli nie znaleziono.
+     */
     private int getIndex(int x, int y) {
         for (int i = 0; i < starBoard.size(); i++) {
             int[] position = starBoard.get(i);
@@ -479,19 +609,38 @@ public class Board {
         return -1; // Zwraca -1, jeśli nie znaleziono pozycji
     }
 
-
+    /**
+     * Zwraca listę dozwolonych pozycji na planszy.
+     *
+     * @return Lista dozwolonych pozycji na planszy.
+     */
     public List<int[]> getAllowedPositions() {
         return starBoard;
     }
 
+    /**
+     * Zwraca kopię listy pionków.
+     *
+     * @return Lista pionków (kopie obiektów Piece).
+     */
     public List<Piece> getPieces() {
         return new ArrayList<>(pieces); 
     }
 
+    /**
+     * Zwraca ID aktywnego gracza.
+     *
+     * @return ID aktywnego gracza.
+     */
     public char getActivePlayer() {
         return playerIds[activePlayer];
     }
 
+    /**
+     * Zwraca reprezentację tekstową obiektu Board w postaci ciągu współrzędnych pozycji.
+     *
+     * @return Reprezentacja tekstowa planszy w formacie "x,y,x,y,...".
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -502,18 +651,40 @@ public class Board {
         return sb.toString();
     }
 
+    /**
+     * Zwraca liczbę graczy w grze.
+     *
+     * @return Liczba graczy.
+     */
     public Integer getPlayerNum() {
         return numberOfPlayers;
     }
 
+    /**
+     * Zwraca typ wariantu gry (np. 1, 2, itd.).
+     *
+     * @return Typ wariantu gry.
+     */
     public String getVariant() {
         return String.valueOf(gameType);
     }
 
+    /**
+     * Zwraca ID gracza na podstawie numeru gracza.
+     *
+     * @param playerNum Numer gracza (indeks).
+     * @return ID gracza.
+     */
     public String getPlayerId(int playerNum) {
         return String.valueOf(playerIds[playerNum]);
     }
 
+    /**
+     * Zwraca informacje o wszystkich pionkach w grze w postaci ciągu tekstowego.
+     *
+     * @return Ciąg tekstowy zawierający informacje o wszystkich pionkach w formacie "x,y,pieceId,...".
+     *         Zwraca pusty ciąg, jeśli nie ma pionków.
+     */
     public String getAllPiecesInfo() {
         if (pieces.isEmpty()) {
             return "";

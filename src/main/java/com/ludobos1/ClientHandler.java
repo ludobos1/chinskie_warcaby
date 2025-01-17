@@ -11,6 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Obsługuje komunikację z jednym klientem w grze.
+ * Zarządza połączeniem klienta, przesyłaniem wiadomości oraz dołączaniem i opuszczaniem sesji gry.
+ */
 public class ClientHandler implements Runnable {
   private final Socket clientSocket;
   private ObjectInputStream in;
@@ -20,6 +24,11 @@ public class ClientHandler implements Runnable {
   private static final List<String> sessions = new ArrayList<>();
   private static final Map<ClientHandler, GameSession> gameSessionMap = new HashMap<>();
 
+  /**
+   * Tworzy nowy obiekt {@code ClientHandler} z podanym gniazdem klienta.
+   *
+   * @param socket gniazdo klienta
+   */
   public ClientHandler(Socket socket) {
     this.clientSocket = socket;
     try {
@@ -30,7 +39,11 @@ public class ClientHandler implements Runnable {
       System.out.println(ex.getMessage());
     }
   }
-  
+
+  /**
+   * Obsługuje komunikację z klientem.
+   * Oczekuje na wiadomości od klienta, przetwarza je i reaguje na różne typy wiadomości.
+   */
    @Override
     public void run() {
         try {
@@ -53,6 +66,12 @@ public class ClientHandler implements Runnable {
             disconnect();
         }
     }
+
+  /**
+   * Przetwarza wiadomości od klienta i wykonuje odpowiednie akcje w zależności od typu wiadomości.
+   *
+   * @param message wiadomość od klienta
+   */
      private void handleMessage(Message message) {
         switch (message.getType()) {
             case MOVE:
@@ -127,6 +146,11 @@ public class ClientHandler implements Runnable {
         }
     }
 
+  /**
+   * Wysyła wiadomość do klienta.
+   *
+   * @param message wiadomość do wysłania
+   */
     public void sendMessage(Message message) {
         try {
             out.writeObject(message);
@@ -136,6 +160,12 @@ public class ClientHandler implements Runnable {
         }
     }
 
+  /**
+   * Wysyła stan planszy do klienta.
+   *
+   * @param sessionIndex indeks sesji w liście sesji
+   * @param yourId identyfikator gracza
+   */
     public void sendBoardState(int sessionIndex, String yourId) {
       String pieces = gameSessions.get(sessionIndex).board.getAllPiecesInfo();
       String boardSize = gameSessions.get(sessionIndex).board.toString();
@@ -147,6 +177,9 @@ public class ClientHandler implements Runnable {
       this.sendMessage(updateMessage);
     }
 
+  /**
+   * Zamyka połączenie z klientem.
+   */
     private void disconnect() {
         try {
             synchronized (clients) {
