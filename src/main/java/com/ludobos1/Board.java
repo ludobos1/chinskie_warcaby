@@ -1,4 +1,5 @@
 package com.ludobos1;
+import java.io.Serializable;
 import java.util.*;
 
 
@@ -6,7 +7,7 @@ import java.util.*;
  * Klasa Board reprezentuje planszę dla gry w chińskie warcaby. Obsługuje inicjalizację, zarządzanie i przemieszczanie pionków,
  * tury graczy oraz sprawdzanie warunków zwycięstwa.
  */
-public class Board {
+public class Board implements Serializable {
     private final List<int[]> p1 = new ArrayList<>();
     private final List<int[]> p2 = new ArrayList<>();
     private final List<int[]> p3 = new ArrayList<>();
