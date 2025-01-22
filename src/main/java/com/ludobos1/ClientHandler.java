@@ -1,6 +1,8 @@
 package com.ludobos1;
 
 import com.ludobos1.message.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -15,6 +17,7 @@ import java.util.Map;
  * Obsługuje komunikację z jednym klientem w grze.
  * Zarządza połączeniem klienta, przesyłaniem wiadomości oraz dołączaniem i opuszczaniem sesji gry.
  */
+@Component
 public class ClientHandler implements Runnable {
   private final Socket clientSocket;
   private ObjectInputStream in;
@@ -23,13 +26,16 @@ public class ClientHandler implements Runnable {
   private static final List<GameSession> gameSessions = new ArrayList<>();
   private static final List<String> sessions = new ArrayList<>();
   private static final Map<ClientHandler, GameSession> gameSessionMap = new HashMap<>();
+  private BoardService boardService;
 
   /**
    * Tworzy nowy obiekt {@code ClientHandler} z podanym gniazdem klienta.
    *
    * @param socket gniazdo klienta
    */
-  public ClientHandler(Socket socket) {
+  @Autowired
+  public ClientHandler(Socket socket, BoardService boardService) {
+    this.boardService = boardService;
     this.clientSocket = socket;
     try {
       in = new ObjectInputStream(clientSocket.getInputStream());
@@ -141,6 +147,12 @@ public class ClientHandler implements Runnable {
                   client.sendMessage(sessionsMessage);
                 }
                 break;
+          case SAVE:
+            System.out.println("otrzymano save message");
+            GameSession sess = gameSessionMap.get(this);
+            boardService.saveBoardState(sess.board);
+            System.out.println("zapisano");
+            break;
             default:
                 System.out.println("Nieznany typ wiadomości: " + message.getType());
         }

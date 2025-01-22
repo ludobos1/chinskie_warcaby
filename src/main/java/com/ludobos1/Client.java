@@ -1,9 +1,8 @@
 package com.ludobos1;
 
-import com.ludobos1.message.CreateMessage;
-import com.ludobos1.message.JoinMessage;
-import com.ludobos1.message.Message;
-import com.ludobos1.message.MoveMessage;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.ludobos1.message.*;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -17,8 +16,6 @@ import javafx.scene.shape.Circle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -55,8 +52,6 @@ public class Client extends Application {
   private Circle selectedCircle;
   private Color myColor;
   private List<Circle> possibleMoves = new ArrayList<>();
-  private int furthestCol;
-  private int furthestRow;
 
   /**
    * Punkt wejścia aplikacji JavaFX.
@@ -117,12 +112,6 @@ public class Client extends Application {
         circle.setOnMouseClicked(mouseEvent -> handleCircleClick(mouseEvent, circle));
         fields.put(coords, circle);
         gp.add(circle, boardTile[0], boardTile[1]*2);
-        if (boardTile[0] > furthestCol) {
-          furthestCol = boardTile[0];
-        }
-        if (boardTile[1] > furthestRow) {
-          furthestRow = boardTile[1];
-        }
       }
       Button pass = new Button("Pass");
       pass.setOnAction(actionEvent -> {
@@ -139,7 +128,12 @@ public class Client extends Application {
           sendMessage(moveMessage);
         }
       });
-      gp.add(pass,furthestCol+1,furthestRow);
+      gp.add(pass,0,0);
+      Button save = new Button("Save");
+      save.setOnAction(actionEvent -> {
+        sendMessage(new SaveMessage());
+      });
+      gp.add(save,1,0);
       Scene gameScene = new Scene(gp, 1000, 1000);
       primaryStage.setScene(gameScene);
     });

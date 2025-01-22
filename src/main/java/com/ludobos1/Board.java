@@ -1,5 +1,10 @@
 package com.ludobos1;
-import java.io.Serializable;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
 import java.util.*;
 
 
@@ -7,13 +12,25 @@ import java.util.*;
  * Klasa Board reprezentuje planszę dla gry w chińskie warcaby. Obsługuje inicjalizację, zarządzanie i przemieszczanie pionków,
  * tury graczy oraz sprawdzanie warunków zwycięstwa.
  */
-public class Board implements Serializable {
+@Document(collection = "boards")
+public class Board {
+    @Id
+    private String id;
+    @Field("title")
+    private String title;
+    @Transient
     private final List<int[]> p1 = new ArrayList<>();
+    @Transient
     private final List<int[]> p2 = new ArrayList<>();
+    @Transient
     private final List<int[]> p3 = new ArrayList<>();
+    @Transient
     private final List<int[]> p4 = new ArrayList<>();
+    @Transient
     private final List<int[]> p5 = new ArrayList<>();
+    @Transient
     private final List<int[]> p6 = new ArrayList<>();
+    @Transient
     public List<int[]> starBoard = new ArrayList<>();
     private List<Piece> pieces = new ArrayList<>();
     private final Map<Character, String> playerSectors = new HashMap<>(); // Mapowanie ID gracza do sektora
@@ -713,5 +730,8 @@ public class Board implements Serializable {
         }
 
         return sb.toString();
+    }
+    public void setTitle(String title) {
+        this.title = title;
     }
 }
