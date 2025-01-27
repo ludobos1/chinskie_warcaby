@@ -11,5 +11,6 @@ public enum TypeEnum {
   CREATE,
   SESSIONS,
   ERROR,
-  Winner
+  Winner,
+  BOT,
 }

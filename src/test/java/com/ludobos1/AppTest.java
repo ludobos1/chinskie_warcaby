@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class AppTest {
     private Board board;
     private Board board1;
+    private BotLogic botlogic;
 
     @BeforeEach
     public void setUp() {
@@ -27,7 +28,7 @@ public class AppTest {
     public void testGenerateStarBoard() {
         List<int[]> allowedPositions = board.getAllowedPositions();
         assertNotNull(allowedPositions, "Lista dozwolonych pozycji nie powinna być null.");
-        assertTrue(allowedPositions.size() > 0, "Lista dozwolonych pozycji powinna zawierać elementy.");
+        assertTrue(board.starBoard.size() > 0, "Lista dozwolonych pozycji powinna zawierać elementy.");
     }
 
     @Test
@@ -171,6 +172,31 @@ public void testMoveByJumping() {
         assertTrue(board1.isLegal("B1",16,24,2),"Oba pola dzieli taka sama liczba wolnych pól");
 
     }
+
+    @Test
+    public void testCountSpacesToPole() {
+        BotLogic botlogic=new BotLogic(board);
+        assertEquals(144,botlogic.countSpacesToPole(12,12,12,0));      
+    }
+
+    @Test
+    public void testCountFreeSpacesToWin() {
+        BotLogic botlogic=new BotLogic(board);
+        assertEquals(144,botlogic.countFreeSpacesToWin(12,12,12,0));      
+    }
+
+    @Test
+    public void testFindFastestPieceToWin(){
+        BotLogic botlogic=new BotLogic(board);
+        board.addPiece("D1", 10, 8);
+        board.addPiece("D2",12,24);
+        board.addPiece("A1",12,12);
+        assertEquals("D1",botlogic.findFastestPieceToWin());
+    }
+
+
+
+
 }
     
 

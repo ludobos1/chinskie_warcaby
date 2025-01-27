@@ -1,7 +1,7 @@
 package com.ludobos1;
 import java.io.Serializable;
 import java.util.*;
-
+//
 
 /**
  * Klasa Board reprezentuje planszę dla gry w chińskie warcaby. Obsługuje inicjalizację, zarządzanie i przemieszczanie pionków,
@@ -62,7 +62,7 @@ public class Board implements Serializable {
         startX = (sideLength-1)*2;
         startY=(sideLength-1)*2;
         endX=startX + sideLength*2-2;
-        for (int y = startY; y <= startY+sideLength*2; y=y+2) {
+        for (int y = startY; y <= startY+(sideLength-1)*2; y=y+2) {
             for (int x = startX; x <= endX; x=x+2) {
                 allowedPositions.add(new int[]{x, y});
             }
@@ -303,6 +303,7 @@ public class Board implements Serializable {
         return true;
     }
 
+
     /**
      * Zwraca informację, czy gra została zakończona.
      *
@@ -390,6 +391,17 @@ public class Board implements Serializable {
         return true;
     }
 
+
+    public boolean isFieldFreeOnlyD(int x, int y) {
+        for (Piece piece : pieces) {
+            if (piece.getX() == x && piece.getY() == y && piece.getPieceId().charAt(0)=='D') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
     /**
      * Sprawdza, czy dany ruch jest legalny na podstawie typu gry i innych zasad.
      *
@@ -419,13 +431,11 @@ public class Board implements Serializable {
     
         // Sprawdzanie, czy pole docelowe jest na planszy
         if (!isWithinBoard(newX, newY)) {
-            System.out.println("Nielegalny ruch – współrzędne poza dozwolonym obszarem gry.");
             return false;
         }
 
         // Sprawdzanie, czy pole docelowe jest zajęte
         if (!isFieldFree(newX, newY)) {
-            System.out.println("Pole docelowe (" + newX + ", " + newY + ") jest zajęte.");
             return false;
         }
     
@@ -441,7 +451,6 @@ public class Board implements Serializable {
                 }
             }
             if (!isInSector) {
-                System.out.println("Nielegalny ruch – pionek nie może opuścić przeciwniczego sektora.");
                 return false;
             }
         }
@@ -472,19 +481,13 @@ public class Board implements Serializable {
      */
     public boolean canSkipWithSymmetryRule(int currentX, int currentY, int targetX, int targetY) {
         int middleX = (currentX + targetX) / 2;
-        System.out.println("middleX: " + middleX);
         int middleY = (currentY + targetY) / 2;
-        System.out.println("middleY: "+middleY);
         if (isFieldFree(middleX, middleY)) {
-            System.out.println("Field free returning false");
             return false; 
         }
-    
         int freeSpacesBefore = countFreeSpacesInLine(currentX, currentY, middleX, middleY);
-        System.out.println("freeSpacesBefore: " + freeSpacesBefore);
         int freeSpacesAfter = countFreeSpacesInLine(middleX, middleY, targetX, targetY);
-        System.out.println("freeSpacesAfter: " + freeSpacesAfter);
-        System.out.println(freeSpacesBefore==freeSpacesAfter);
+        if(freeSpacesBefore==-1)return false;
         return freeSpacesBefore == freeSpacesAfter;
     }
 
@@ -499,6 +502,7 @@ public class Board implements Serializable {
      */
     public int countFreeSpacesInLine(int startX, int startY, int endX, int endY) {
         int freeSpaces = 0;
+        int ifBreak=0;
     
         int dx = (endX - startX) / Math.max(1, Math.abs(endX - startX));
         int dy = (endY - startY) / Math.max(1, Math.abs(endY - startY));
@@ -515,11 +519,11 @@ public class Board implements Serializable {
                 break; 
             }
             x += dx;
-            System.out.println("x: " + x);
             y += 2*dy;
-            System.out.println("y: " + y);
         }
-    
+        
+        System.out.println("ifbreak: "+ifBreak+" freeSpaces: " + freeSpaces);
+        if(ifBreak==-1)return ifBreak;
         return freeSpaces;
     }
 
@@ -593,7 +597,7 @@ public class Board implements Serializable {
      * @param y Współrzędna y.
      * @return True, jeśli pozycja mieści się w granicach planszy, false w przeciwnym razie.
      */
-    private boolean isWithinBoard(int x, int y) {
+    public boolean isWithinBoard(int x, int y) {
         for (int[] position : starBoard) {
             if (position[0] == x && position[1] == y) {
                 return true;
@@ -713,5 +717,15 @@ public class Board implements Serializable {
         }
 
         return sb.toString();
+    }
+
+    public List<int[]> getp1()
+    {
+        return p1;
+    }
+
+    public List<Piece> getpieces()
+    {
+        return pieces;
     }
 }

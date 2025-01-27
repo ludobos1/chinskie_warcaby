@@ -11,6 +11,7 @@ public class GameSession {
   public Board board;
   private final ArrayList<ClientHandler> clients = new ArrayList<>();
   private final String name;
+  BotLogic bot;
 
   /**
    * Tworzy nową sesję gry.
@@ -21,6 +22,11 @@ public class GameSession {
   public GameSession(Board board, String name) {
     this.board = board;
     this.name = name;
+  }
+
+  public void addBot(BotLogic bot)
+  {
+    this.bot=bot;
   }
 
   /**
