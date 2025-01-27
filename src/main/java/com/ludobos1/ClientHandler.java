@@ -74,6 +74,17 @@ public class ClientHandler implements Runnable {
    */
      private void handleMessage(Message message) {
         switch (message.getType()) {
+            case BOT:
+              GameSession s = gameSessionMap.get(this);
+              if(s.bot==null){
+                BotLogic bot = new BotLogic(s.board);
+                s.addBot(bot);
+                botMove(s, s.board.getActivePlayer());
+              }
+              else{
+                sendMessage(new ErrorMessage("2"));
+              }
+              break;
             case MOVE:
               System.out.println("Odebrano ruch od klienta: " + message.getContent());
               GameSession session = gameSessionMap.get(this);
@@ -93,6 +104,7 @@ public class ClientHandler implements Runnable {
                         messText = pieceId.charAt(0) + ",0";
                       }
                       session.broadcastMessage(new WinnerMessage(messText));
+
                     }
                   }
                   String pieces = session.board.getAllPiecesInfo();
@@ -102,7 +114,9 @@ public class ClientHandler implements Runnable {
                   System.out.println("broadcastuję message pieces: " + pieces + "activePlayer: " + activePlayer);
                   session.broadcastMessage(new UpdateMessage(pieces, activePlayer));
                   session.broadcastMessage(message);
-                } else {
+                  botMove(session, activePlayer);
+                }
+                 else {
                   this.sendMessage(new ErrorMessage("1"));
                 }
               } else {
@@ -146,6 +160,32 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private void botMove(GameSession session, char activePlayer){
+      if(session.bot!=null && activePlayer=='D'){
+        String pId=session.bot.randomPiece();
+        int btargetX=session.bot.getTargetX();
+        int btargetY=session.bot.getTargetY();
+        if(session.board.movePiece(pId, btargetX, btargetY))
+        {
+            if (session.board.ifWon(pId.charAt(0))) {
+              String messText;
+              if (session.board.isGameOver()) {
+                messText = pId.charAt(0) + ",1";
+              } else {
+                messText = pId.charAt(0) + ",0";
+              }
+              session.broadcastMessage(new WinnerMessage(messText));
+            }
+          String pieces = session.board.getAllPiecesInfo();
+          System.out.println(pieces);
+          activePlayer = session.board.getActivePlayer();
+          System.out.println(activePlayer);
+          System.out.println("broadcastuję message pieces: " + pieces + "activePlayer: " + activePlayer);
+          session.broadcastMessage(new UpdateMessage(pieces, activePlayer));
+          session.broadcastMessage(new MoveMessage(pId,btargetX, btargetY));
+        }
+      } 
+    }
   /**
    * Wysyła wiadomość do klienta.
    *

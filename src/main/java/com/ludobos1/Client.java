@@ -1,5 +1,6 @@
 package com.ludobos1;
 
+import com.ludobos1.message.BotMessage;
 import com.ludobos1.message.CreateMessage;
 import com.ludobos1.message.JoinMessage;
 import com.ludobos1.message.Message;
@@ -125,6 +126,10 @@ public class Client extends Application {
         }
       }
       Button pass = new Button("Pass");
+      Button botButton = new Button("Add Bot");
+      botButton.setOnAction(actionEvent ->{
+          sendMessage(new BotMessage());
+      });
       pass.setOnAction(actionEvent -> {
         if (activePlayer.equals(myId)){
           removePossibleMoves();
@@ -140,6 +145,7 @@ public class Client extends Application {
         }
       });
       gp.add(pass,furthestCol+1,furthestRow);
+      gp.add(botButton, 1,0);
       Scene gameScene = new Scene(gp, 1000, 1000);
       primaryStage.setScene(gameScene);
     });
@@ -444,6 +450,9 @@ public class Client extends Application {
             break;
           case "1":
             System.out.println("nielegalny ruch");
+            break;
+            case "2":
+            System.out.println("Bot już istnieje");
             break;
           default:
             System.out.println("nieznany błąd");
