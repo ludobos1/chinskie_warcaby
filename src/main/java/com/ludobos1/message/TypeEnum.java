@@ -13,4 +13,6 @@ public enum TypeEnum {
   ERROR,
   Winner,
   BOT,
+  SAVE,
+  LOAD
 }

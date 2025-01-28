@@ -58,28 +58,28 @@ public class AppTest {
         assertFalse(result, "Ruch na zajęte pole powinien być nieudany.");
     }
 
-    @Test
-public void testMoveByJumping() {
-    // Ustawienie pionków na planszy
-    board.addPiece("A1", 9, 10); // Pionek, który ma wykonać skok
-    board.addPiece("B1", 10, 12); // Pionek, przez który A1 ma skoczyć
+        @Test
+    public void testMoveByJumping() {
+        // Ustawienie pionków na planszy
+        board.addPiece("A1", 9, 10); // Pionek, który ma wykonać skok
+        board.addPiece("B1", 10, 12); // Pionek, przez który A1 ma skoczyć
 
-    // Próba wykonania skoku
-    boolean result = board.movePiece("A1", 11, 14);
+        // Próba wykonania skoku
+        boolean result = board.movePiece("A1", 11, 14);
 
-    // Sprawdzanie wyniku skoku
-    assertTrue(result, "Ruch przez skok powinien być dozwolony.");
-    
-    // Weryfikacja nowej pozycji pionka
-    Piece movedPiece = board.getPieces().stream()
-        .filter(p -> p.getPieceId().equals("A1"))
-        .findFirst()
-        .orElse(null);
+        // Sprawdzanie wyniku skoku
+        assertTrue(result, "Ruch przez skok powinien być dozwolony.");
 
-    assertNotNull(movedPiece, "Pionek A1 powinien istnieć.");
-    assertEquals(11, movedPiece.getX(), "Pionek A1 powinien znajdować się na pozycji X=11.");
-    assertEquals(14, movedPiece.getY(), "Pionek A1 powinien znajdować się na pozycji Y=14.");
-}
+        // Weryfikacja nowej pozycji pionka
+        Piece movedPiece = board.getPieces().stream()
+            .filter(p -> p.getPieceId().equals("A1"))
+            .findFirst()
+            .orElse(null);
+
+        assertNotNull(movedPiece, "Pionek A1 powinien istnieć.");
+        assertEquals(11, movedPiece.getX(), "Pionek A1 powinien znajdować się na pozycji X=11.");
+        assertEquals(14, movedPiece.getY(), "Pionek A1 powinien znajdować się na pozycji Y=14.");
+    }
     @Test
     public void testMoveByMultipleJumping() {
         // Ustawienie pionków na planszy
