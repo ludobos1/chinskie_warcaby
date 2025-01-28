@@ -1,25 +1,19 @@
 package com.ludobos1;
 
 import com.ludobos1.message.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Obsługuje komunikację z jednym klientem w grze.
  * Zarządza połączeniem klienta, przesyłaniem wiadomości oraz dołączaniem i opuszczaniem sesji gry.
  */
-@Component
 public class ClientHandler implements Runnable {
-  private final Socket clientSocket;
+  private Socket clientSocket;
   private ObjectInputStream in;
   private ObjectOutputStream out;
   private static final List<ClientHandler> clients = new ArrayList<>();
@@ -27,16 +21,17 @@ public class ClientHandler implements Runnable {
   private static final List<String> sessions = new ArrayList<>();
   private static final Map<ClientHandler, GameSession> gameSessionMap = new HashMap<>();
   private BoardService boardService;
+  private Server server;
 
   /**
    * Tworzy nowy obiekt {@code ClientHandler} z podanym gniazdem klienta.
    *
-   * @param socket gniazdo klienta
+   * @param boardService serwis planszy
+   * @param server obiekt serwera
    */
-  @Autowired
-  public ClientHandler(Socket socket, BoardService boardService) {
+  public ClientHandler(BoardService boardService, Server server, Socket clientSocket) {
     this.boardService = boardService;
-    this.clientSocket = socket;
+    this.server = server;
     try {
       in = new ObjectInputStream(clientSocket.getInputStream());
       out = new ObjectOutputStream(clientSocket.getOutputStream());
@@ -56,8 +51,9 @@ public class ClientHandler implements Runnable {
             synchronized (clients) {
                 clients.add(this);
                 System.out.println("Nowy klient połączony. Liczba klientów: " + clients.size());
-                if (!sessions.isEmpty()) {
-                  Message sessionsMessage = new SessionsMessage(sessions);
+                if (!sessions.isEmpty()||!server.getSavesNames().isEmpty()) {
+                  Message sessionsMessage = new SessionsMessage(sessions, server.getSavesNames());
+                  System.out.println("Wysyłam sessionsmessage: " + sessionsMessage.getContent());
                   this.sendMessage(sessionsMessage);
                 }
             }
@@ -90,6 +86,7 @@ public class ClientHandler implements Runnable {
               if (session != null) {
                 System.out.println("Wykonuję ruch: " + pieceId + " " + x + " " + y);
                 if (session.board.movePiece(pieceId, x, y)) {
+                  session.board.addMove(message.getContent());
                   if (!pieceId.equals("pass")) {
                     if (session.board.ifWon(pieceId.charAt(0))) {
                       String messText;
@@ -107,7 +104,6 @@ public class ClientHandler implements Runnable {
                   System.out.println(activePlayer);
                   System.out.println("broadcastuję message pieces: " + pieces + "activePlayer: " + activePlayer);
                   session.broadcastMessage(new UpdateMessage(pieces, activePlayer));
-                  session.broadcastMessage(message);
                 } else {
                   this.sendMessage(new ErrorMessage("1"));
                 }
@@ -135,27 +131,44 @@ public class ClientHandler implements Runnable {
             // jakie dane sa w parseint split 0 split 1?? //
                 Board board = new BoardBuilder().setVariant(Integer.parseInt(split[1])).setPlayerNum(Integer.parseInt(split[0])).build();
                 board.initializeGame();
-                String yourId = board.getPlayerId(0);
-                GameSession gameSession = new GameSession(board, split[2]);
-                gameSession.joinClient(this);
-                gameSessions.add(gameSession);
-                gameSessionMap.put(this, gameSession);
-                sessions.add(gameSession.getName());
-                sendBoardState(gameSessions.indexOf(gameSession), yourId);
-                Message sessionsMessage = new SessionsMessage(sessions);
-                for (ClientHandler client : clients) {
-                  client.sendMessage(sessionsMessage);
-                }
+                createSession(board, split[2]);
                 break;
           case SAVE:
             System.out.println("otrzymano save message");
             GameSession sess = gameSessionMap.get(this);
+            sess.board.setTitle(message.getContent());
             boardService.saveBoardState(sess.board);
+            server.setSavedBoards();
+            server.setSavesNames();
             System.out.println("zapisano");
             break;
-            default:
-                System.out.println("Nieznany typ wiadomości: " + message.getType());
+          case LOAD:
+            System.out.println("otrzymano load message");
+            Optional<Board> board1 = boardService.getBoardState(message.getContent());
+            if(board1.isPresent()){
+              Board board2 = board1.get();
+              board2.initializeGame();
+              board2.executeMoves();
+              createSession(board2, board2.getTitle());
+            }
+            break;
+          default:
+              System.out.println("Nieznany typ wiadomości: " + message.getType());
         }
+    }
+    public void createSession(Board board, String title){
+      String yourId = board.getPlayerId(0);
+      GameSession gameSession = new GameSession(board, title);
+      gameSession.joinClient(this);
+      gameSessions.add(gameSession);
+      gameSessionMap.put(this, gameSession);
+      sessions.add(gameSession.getName());
+      sendBoardState(gameSessions.indexOf(gameSession), yourId);
+      Message sessionsMessage = new SessionsMessage(sessions,server.getSavesNames());
+      System.out.println("wysyłam sessionsmessage: "+ sessionsMessage.getContent());
+      for (ClientHandler client : clients) {
+        client.sendMessage(sessionsMessage);
+      }
     }
 
   /**
@@ -216,4 +229,5 @@ public class ClientHandler implements Runnable {
             System.out.println("Błąd podczas rozłączania klienta: " + e.getMessage());
         }
     }
+
 }

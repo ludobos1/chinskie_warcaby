@@ -12,5 +12,6 @@ public enum TypeEnum {
   SESSIONS,
   ERROR,
   Winner,
-  SAVE
+  SAVE,
+  LOAD
 }

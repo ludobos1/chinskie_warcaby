@@ -8,15 +8,17 @@ import java.util.List;
 public class SessionsMessage implements Message {
   private final TypeEnum type;
   private List<String> sessionNames;
+  private List<String> saveNamesAndIds;
 
   /**
    * Tworzy nowy obiekt {@code SessionsMessage} z podaną listą nazw sesji.
    *
    * @param sessionNames lista nazw sesji
    */
-  public SessionsMessage(List<String> sessionNames) {
+  public SessionsMessage(List<String> sessionNames, List<String> saveNamesAndIds) {
     type = TypeEnum.SESSIONS;
     this.sessionNames = sessionNames;
+    this.saveNamesAndIds = saveNamesAndIds;
   }
 
   /**
@@ -40,6 +42,12 @@ public class SessionsMessage implements Message {
     for (String sessionName : sessionNames) {
       content.append(sessionName).append(",");
     }
+    content.append("/");
+    for (int i = 0; i < saveNamesAndIds.size()/2; i++) {
+      content.append(saveNamesAndIds.get(2*i)).append(",");
+      content.append(saveNamesAndIds.get(2*i+1)).append("!");
+    }
+    content.deleteCharAt(content.length() - 1);
     return content.toString();
   }
 }

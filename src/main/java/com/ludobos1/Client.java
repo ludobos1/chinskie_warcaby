@@ -10,6 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -40,6 +41,7 @@ public class Client extends Application {
   private Socket socket;
   private boolean isInGameSession = false;
   private String[] sessions = new String[0];
+  private Map<String, String> savedBoards = new HashMap<>();
   private BorderPane menuRoot = new BorderPane();
   private Stage primaryStage;
   private int[][] boardTiles;
@@ -82,6 +84,7 @@ public class Client extends Application {
   public void menu() {
     Scene scene = new Scene(menuRoot, 800, 800);
     Button createButton = new Button("Create");
+    Button loadButton = new Button("Load");
     primaryStage.setOnCloseRequest(event -> {
       System.out.println("Zamykam aplikację...");
       closeConnection();
@@ -89,11 +92,41 @@ public class Client extends Application {
       Platform.exit();
     });
     createButton.setOnAction(event -> createGame());
-    menuRoot.setTop(createButton);
+    loadButton.setOnAction(actionEvent -> loadGameStage());
+    HBox hbox = new HBox(createButton, loadButton);
+    menuRoot.setTop(hbox);
 
     primaryStage.setTitle("Menu");
     primaryStage.setScene(scene);
     primaryStage.show();
+  }
+
+  private void loadGameStage() {
+    Stage stage = new Stage();
+    stage.initModality(Modality.APPLICATION_MODAL);
+    stage.setTitle("Load Game");
+    VBox vBox = new VBox();
+    if (!savedBoards.isEmpty()) {
+      Label loadLabel = new Label("Pick game to load");
+      vBox.getChildren().add(loadLabel);
+      for (String key : savedBoards.keySet()) {
+        Label label = new Label(savedBoards.get(key));
+        Button button = new Button("Load");
+        button.setOnAction(actionEvent -> {
+          Message loadMessage = new LoadMessage(key);
+          System.out.println("wysyłam loadMessage: " + loadMessage.getContent());
+          sendMessage(loadMessage);
+        });
+        HBox hBox = new HBox();
+        hBox.getChildren().addAll(label, button);
+        vBox.getChildren().add(hBox);
+      }
+    } else {
+      Label loadLabel = new Label("no saved games");
+      vBox.getChildren().add(loadLabel);
+    }
+    stage.setScene(new Scene(vBox, 800, 800));
+    stage.show();
   }
 
   /**
@@ -131,7 +164,22 @@ public class Client extends Application {
       gp.add(pass,0,0);
       Button save = new Button("Save");
       save.setOnAction(actionEvent -> {
-        sendMessage(new SaveMessage());
+        Stage popupStage = new Stage();
+        popupStage.initModality(Modality.APPLICATION_MODAL); // Blokuje inne okna
+        popupStage.setTitle("Save");
+        Label label = new Label("Enter name of save");
+        TextField nazwa =  new TextField();
+        Button saveButton = new Button("Save");
+        saveButton.setOnAction(actionEvent1 -> {
+          if (!nazwa.getText().isEmpty()) {
+            sendMessage(new SaveMessage(nazwa.getText()));
+            popupStage.close();
+          }
+        });
+        VBox vbox = new VBox();
+        vbox.getChildren().addAll(label, nazwa, saveButton);
+        popupStage.setScene(new Scene(vbox, 800, 800));
+        popupStage.show();
       });
       gp.add(save,1,0);
       Scene gameScene = new Scene(gp, 1000, 1000);
@@ -190,8 +238,8 @@ public class Client extends Application {
     popupStage.setTitle("Stwórz grę");
 
     ComboBox<String> variants = new ComboBox<>();
-    variants.getItems().addAll("wariant 1", "wariant 2");
-    variants.setValue("wariant 1");
+    variants.getItems().addAll("klasyczna", "przyśpieszona");
+    variants.setValue("klasyczna");
 
     ComboBox<String> playerNumber = new ComboBox<>();
     playerNumber.getItems().addAll("2", "3", "4", "6");
@@ -209,7 +257,7 @@ public class Client extends Application {
       String gameName = textField.getText();
       if (!gameName.isEmpty()) {
         int variant;
-        if (selectedOption.equals("wariant 1")) {
+        if (selectedOption.equals("klasyczna")) {
           variant = 1;
         } else {
           variant = 2;
@@ -318,18 +366,35 @@ public class Client extends Application {
     switch (message.getType()) {
       case SESSIONS:
         System.out.println("recieved  sessions: " + message.getContent());
-        sessions = message.getContent().split(",");
+        if(message.getContent().charAt(0)!='/') {
+          String[] split = message.getContent().split("/");
+          sessions = split[0].split(",");
+          if (split.length > 1) {
+            String[] savedBoardsAndIds = split[1].split("!");
+            for (String savedBoardsAndId : savedBoardsAndIds) {
+              String[] idAndTitle = savedBoardsAndId.split(",");
+              savedBoards.put(idAndTitle[0], idAndTitle[1]);
+            }
+          }
+        } else {
+          String savedBoardsAndIdsUnsplit = message.getContent().substring(1);
+          String[] savedBoardsAndIds = savedBoardsAndIdsUnsplit.split("!");
+          for (String savedBoardsAndId : savedBoardsAndIds) {
+            String[] idAndTitle = savedBoardsAndId.split(",");
+            savedBoards.put(idAndTitle[0], idAndTitle[1]);
+          }
+        }
         if(!isInGameSession) {
           writeSessions(sessions);
         }
         break;
-      case MOVE:
+      /*case MOVE:
         String[] messageContent = message.getContent().split(",");
         String pieceId = messageContent[0];
         int x1 = Integer.parseInt(messageContent[1]);
         int y1 = Integer.parseInt(messageContent[2]);
         board.movePiece(pieceId, x1, y1);
-        break;
+        break;*/
       case UPDATE:
         System.out.println("Recieved update");
         String[] updateSplit = message.getContent().split("/");
@@ -381,6 +446,7 @@ public class Client extends Application {
           });
         }
         piecesMap.clear();
+        pieces.clear();
         for (int i = 0; i < piecesInfo.length/3; i++) {
           try {
             int x = Integer.parseInt(piecesInfo[3 * i]);
@@ -423,7 +489,10 @@ public class Client extends Application {
             System.out.println(e.getMessage());
           }
         }
-        //board.setPieces(pieces);
+        for (Piece piece : pieces) {
+          System.out.println(piece.getX() + " " + piece.getY() + " " + piece.getPieceId());
+        }
+        board.setPieces(pieces);
         break;
       case ERROR:
         switch (message.getContent()) {
@@ -508,8 +577,8 @@ public class Client extends Application {
     Platform.runLater(() -> {
       if (sessions.length > 0) {
         VBox vBox = new VBox();
-        TextArea textArea = new TextArea("Dostepne gry:");
-        vBox.getChildren().add(textArea);
+        Label label = new Label("Dostepne gry:");
+        vBox.getChildren().add(label);
         int index = 0;
         for (String session : sessions) {
           Button sessionButton = new Button(index + ". " + session);
@@ -524,8 +593,8 @@ public class Client extends Application {
         }
         menuRoot.setCenter(vBox);
       } else {
-        TextArea textArea = new TextArea("Brak dostępnych gier.");
-        menuRoot.setCenter(textArea);
+        Label label = new Label("Brak dostępnych gier.");
+        menuRoot.setCenter(label);
       }
     });
   }

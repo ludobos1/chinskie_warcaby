@@ -18,6 +18,8 @@ public class Board {
     private String id;
     @Field("title")
     private String title;
+    @Field("Moves")
+    private List<String> moves = new ArrayList<>();
     @Transient
     private final List<int[]> p1 = new ArrayList<>();
     @Transient
@@ -32,15 +34,39 @@ public class Board {
     private final List<int[]> p6 = new ArrayList<>();
     @Transient
     public List<int[]> starBoard = new ArrayList<>();
+    @Transient
     private List<Piece> pieces = new ArrayList<>();
+    @Transient
     private final Map<Character, String> playerSectors = new HashMap<>(); // Mapowanie ID gracza do sektora
-    private final int gameType;
-    private int sideLength=1;
-    private final int numberOfPlayers;
+    @Field("gameType")
+    private int gameType;
+    @Transient
+    private int sideLength=5;
+    @Field("numberOfPlayers")
+    private int numberOfPlayers;
+    @Transient
     private int activePlayer;
+    @Transient
     private char[] playerIds = {'A','B','C','D','E','F'};
+    @Transient
     private int playersFinished=0;
+    @Transient
     private boolean isGameOver=false;
+    @Field("startingPlayer")
+    private int startingPlayer=-1;
+
+    public Board() {
+
+    }
+
+    public Board(String id, String title, List<String> moves, int gameType, int numberOfPlayers, int startingPlayer) {
+        this.id = id;
+        this.title = title;
+        this.moves = moves;
+        this.gameType = gameType;
+        this.numberOfPlayers = numberOfPlayers;
+        this.startingPlayer = startingPlayer;
+    }
 
     /**
      * Konstruktor klasy Board.
@@ -60,7 +86,12 @@ public class Board {
         starBoard = generateStarBoard();
         initializeAllPlayersPieces(numberOfPlayers);
         Random random = new Random();
-        activePlayer = random.nextInt(numberOfPlayers);
+        if (startingPlayer==-1) {
+            activePlayer = random.nextInt(numberOfPlayers);
+            startingPlayer = activePlayer;
+        } else {
+            activePlayer = startingPlayer;
+        }
     }
 
     /**
@@ -733,5 +764,28 @@ public class Board {
     }
     public void setTitle(String title) {
         this.title = title;
+    }
+    public String getTitle(){
+        return title;
+    }
+    public String getId(){
+        return id;
+    }
+    public void addMove(String move){
+      moves.add(move);
+    }
+    public void executeMoves(){
+        try {
+            for (String move : moves) {
+                String[] split = move.split(",");
+                movePiece(split[0], Integer.parseInt(split[1]), Integer.parseInt(split[2]));
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Ruchy niepoprawnie zapisane");
+        }
+    }
+
+    public void setPieces(List<Piece> pieces) {
+        this.pieces = pieces;
     }
 }
