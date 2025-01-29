@@ -192,6 +192,7 @@ public class ClientHandler implements Runnable {
         int btargetY=session.bot.getTargetY();
         if(session.board.movePiece(pId, btargetX, btargetY))
         {
+          session.board.addMove(pId+","+btargetX+","+btargetY);
             if (session.board.ifWon(pId.charAt(0))) {
               String messText;
               if (session.board.isGameOver()) {
