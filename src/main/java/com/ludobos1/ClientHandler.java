@@ -207,7 +207,6 @@ public class ClientHandler implements Runnable {
           System.out.println(activePlayer);
           System.out.println("broadcastuję message pieces: " + pieces + "activePlayer: " + activePlayer);
           session.broadcastMessage(new UpdateMessage(pieces, activePlayer));
-          session.broadcastMessage(new MoveMessage(pId,btargetX, btargetY));
         }
       } 
     }

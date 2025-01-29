@@ -1,18 +1,12 @@
 package com.ludobos1;
 
-<<<<<<< HEAD
-import com.ludobos1.message.BotMessage;
-import com.ludobos1.message.CreateMessage;
-import com.ludobos1.message.JoinMessage;
-import com.ludobos1.message.Message;
-import com.ludobos1.message.MoveMessage;
-=======
+
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.ludobos1.message.*;
->>>>>>> Kuba-branch
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
@@ -124,6 +118,7 @@ public class Client extends Application {
           Message loadMessage = new LoadMessage(key);
           System.out.println("wysyłam loadMessage: " + loadMessage.getContent());
           sendMessage(loadMessage);
+          stage.close();
         });
         HBox hBox = new HBox();
         hBox.getChildren().addAll(label, button);
@@ -142,6 +137,7 @@ public class Client extends Application {
    */
   public void game() {
     Platform.runLater(() -> {
+      BorderPane borderPane = new BorderPane();
       GridPane gp = new GridPane();
       gp.setHgap(7);
       gp.setVgap(7);
@@ -173,8 +169,6 @@ public class Client extends Application {
           sendMessage(moveMessage);
         }
       });
-      gp.add(botButton, 1,0);
-      gp.add(pass,0,0);
       Button save = new Button("Save");
       save.setOnAction(actionEvent -> {
         Stage popupStage = new Stage();
@@ -194,8 +188,12 @@ public class Client extends Application {
         popupStage.setScene(new Scene(vbox, 800, 800));
         popupStage.show();
       });
-      gp.add(save,2,0);
-      Scene gameScene = new Scene(gp, 1000, 1000);
+      HBox hBox = new HBox();
+      hBox.getChildren().addAll(save, botButton, pass);
+      hBox.setAlignment(Pos.TOP_LEFT);
+      borderPane.setTop(hBox);
+      borderPane.setCenter(gp);
+      Scene gameScene = new Scene(borderPane, 1000, 1000);
       primaryStage.setScene(gameScene);
     });
   }
