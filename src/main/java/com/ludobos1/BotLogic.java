@@ -22,7 +22,7 @@ public class BotLogic
     }
 
 
-    /*public void createFrameWinList()
+    public void createFrameWinList()
     {
         int sideLength=5;
         //górny
@@ -58,7 +58,23 @@ public class BotLogic
                 fWP3.add(new int[]{x,y});
             }
         }
-    }*/
+    }
+
+    public boolean isPieceInFWP1(String pieceId) {
+        for (Piece piece : board.getpieces()) {
+            if (piece.getPieceId().equals(pieceId)) {
+                int pieceX = piece.getX();
+                int pieceY = piece.getY();
+                
+                for (int[] position : fWP1) {
+                    if (position[0] == pieceX && position[1] == pieceY) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 public String randomPiece() {
     Random random = new Random();
     double probability = random.nextDouble();
@@ -72,7 +88,7 @@ public String randomPiece() {
         do {
             randomNumber = random.nextInt(10) + 1; 
             selectedPieceId = "D" + randomNumber; 
-        } while (findSpaceFastestToWin(selectedPieceId, finalX, finalY) == Integer.MAX_VALUE);
+        } while (findSpaceFastestToWin(selectedPieceId, finalX, finalY) == Integer.MAX_VALUE||isPieceInFWP1(selectedPieceId));
         findSpaceFastestToWin("D"+randomNumber, finalX, finalY);
         konc[0]=tab[0];
         konc[1]=tab[1];
